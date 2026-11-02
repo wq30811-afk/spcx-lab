@@ -1,5 +1,5 @@
 # Retry with unbuffered output and a hang dump. Step-by-step trace of the mask pipeline on frames 336-348 (13.9-14.5 s), toon template.
-cd /root/autodl-tmp/spcx-test && bin/ffmpeg -v error -y -ss 13.0 -t 1.6 -i mask-test.mp4 -an -c:v libx264 -crf 12 /root/autodl-tmp/spcx-lab-work/clip344.mp4
+cd /root/autodl-tmp/spcx-test && bin/ffmpeg -nostdin -v error -y -ss 13.0 -t 1.6 -i mask-test.mp4 -an -c:v libx264 -crf 12 /root/autodl-tmp/spcx-lab-work/clip344.mp4
 SPCX_ROOT=$PWD SPCX_CLOUD_MODE=1 timeout 600 /root/autodl-tmp/spcx/.venv/bin/python -u - <<'PY' 2>&1
 import sys,cv2,numpy as np,faulthandler; sys.path.insert(0,'.'); faulthandler.dump_traceback_later(180,exit=True)
 print('start',flush=True)

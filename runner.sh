@@ -42,7 +42,7 @@ run_job(){   # $1 = job json path (relative to LAB)
     done
     git -C "$TEST" status --short | grep -v '^??'
     cd "$TEST"
-    $PY "$LAB/tools/job.py" "$LAB/$job" "$out"
+    $PY "$LAB/tools/job.py" "$LAB/$job" "$out" < /dev/null
     echo "== exit $?  $(date '+%F %T')"
   } > "$out/log.txt" 2>&1
 }
@@ -55,7 +55,7 @@ publish(){   # $1 = results id
 run_cmd(){   # $1 = cmds/<id>.sh ; general shell, 30 min limit, output capped at 2 MB
   local id out; id=$(basename "$1" .sh); out="$LAB/results/$id"; mkdir -p "$out"
   log "cmd $id"
-  ( cd /root/autodl-tmp && timeout 1800 bash "$LAB/$1" ) > "$out/out.full" 2>&1; local code=$?
+  ( cd /root/autodl-tmp && timeout 1800 bash "$LAB/$1" < /dev/null ) > "$out/out.full" 2>&1; local code=$?
   head -c 2000000 "$out/out.full" > "$out/out.txt"; rm -f "$out/out.full"
   echo "$code" > "$out/done"
 }
