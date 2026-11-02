@@ -38,6 +38,15 @@ def mask(step, out):
     return code
 
 
+def audit(step, out):
+    """Lip exposure audit of an earlier mask step's full-resolution result."""
+    name = step['of']; work = Path('/root/autodl-tmp/spcx-lab-work') / step.get('job', out.name) / name
+    result = next(work.glob('mask-*.mp4'), None)
+    if result is None: print('audit: no result for', name); return 2
+    video = Path(step['video']); video = video if video.is_absolute() else LAB / video
+    return run([PY, LAB / 'tools/lip_audit.py', video, result, out / (step.get('job', '') + '-' + name).lstrip('-') / 'audit'])
+
+
 def pytest(step, out):
     return run([PY, '-m', 'pytest', '-q', *step.get('tests', ['tests'])])
 
@@ -45,7 +54,7 @@ def pytest(step, out):
 def main():
     job = json.loads(Path(sys.argv[1]).read_text()); out = Path(sys.argv[2]); codes = []
     for step in job.get('steps', []):
-        fn = {'mask': mask, 'pytest': pytest}.get(step.get('kind'))
+        fn = {'mask': mask, 'pytest': pytest, 'audit': audit}.get(step.get('kind'))
         if fn is None: print('unknown step kind (not run):', step.get('kind')); codes.append(2); continue
         codes.append(fn(step, out))
     (out / 'summary.json').write_text(json.dumps({'step_exit_codes': codes}, indent=1))
