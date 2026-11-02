@@ -1,0 +1,8 @@
+autodl-container-v07skcjs40-00195c3a
+Mon Nov  2 19:03:59 CST 2026
+name, utilization.gpu [%], memory.used [MiB], memory.total [MiB]
+NVIDIA GeForce RTX 5090, 0 %, 2 MiB, 32607 MiB
+/dev/md0         50G   44G  6.3G  88% /root/autodl-tmp
+LISTEN 0      511          0.0.0.0:6006       0.0.0.0:*    users:(("nginx",pid=4666,fd=6))     
+LISTEN 0      2048       127.0.0.1:8768       0.0.0.0:*    users:(("python",pid=230544,fd=20)) 
+2555a2d fix: report local export folder and disk write failures
