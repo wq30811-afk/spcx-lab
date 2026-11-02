@@ -1,0 +1,19 @@
+/dev/md0         50G   44G  6.3G  88% /root/autodl-tmp
+44G	/root/autodl-tmp/spcx
+154M	/root/autodl-tmp/spcx-test
+22M	/root/autodl-tmp/upload-speed-test-20261101
+4.5M	/root/autodl-tmp/spcx-worker-qa
+436K	/root/autodl-tmp/spcx-lab
+4.0K	/root/autodl-tmp/spcx-lab-runner.log
+---
+740M	/root/autodl-tmp/spcx/outputs
+1.6G	/root/autodl-tmp/spcx/work
+2.6G	/root/autodl-tmp/spcx/inputs
+25G	/root/autodl-tmp/spcx/models
+---
+17:35:13.3719925480 412070478 /root/autodl-tmp/spcx/outputs/media/db9f4e8d8ad5404d9f74eb02ff5ae326.mp4
+17:35:13.3719925480 412070478 /root/autodl-tmp/spcx/outputs/任务结果/用户/admin/我的作品/20261102-164332_智能换脸／遮挡_db9f4e8d8ad5404d9f74eb02ff5ae326/处理结果.mp4
+18:28:36.1523739110 1389382176 /root/autodl-tmp/spcx/models/sdxl-base/text_encoder_2/model.fp16.safetensors
+18:34:00.5395722090 5135149760 /root/autodl-tmp/spcx/models/sdxl-base/unet/diffusion_pytorch_model.fp16.safetensors
+18:45:26.8320961310 1348645281 /root/autodl-tmp/spcx/models/speech/f5-base/F5TTS_Base/model_1200000.safetensors
+18:56:57.9199128900 334643238 /root/autodl-tmp/spcx/models/sdxl-vae/diffusion_pytorch_model.safetensors
