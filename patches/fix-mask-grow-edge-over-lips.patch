@@ -1,0 +1,91 @@
+From c7e4158ef76d1683acd82023c501eac1e01a3de6 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 2 Nov 2026 20:40:50 +0900
+Subject: [PATCH] fix(mask): zero-tolerance lip coverage by growing the
+ wearable edge over lip slivers
+
+A 1-2 px line of upper lip stayed visible above the wearable on profiles because the
+coverage check tolerated 2% of lip pixels. Exposed lip pixels now extend the wearable's own
+edge (up to 10 px, coloured from the edge, only toward the lips); larger offsets still move
+the wearable, and only a few isolated parser pixels are tolerated.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015XEHdEnhr7p5ae4FL4TjbE
+---
+ app/processing.py        | 24 +++++++++++++++++++++++-
+ tests/test_lip_safety.py | 15 +++++++++++++--
+ 2 files changed, 36 insertions(+), 3 deletions(-)
+
+diff --git a/app/processing.py b/app/processing.py
+index 698da0b..8d17b3e 100644
+--- a/app/processing.py
++++ b/app/processing.py
+@@ -97,7 +97,12 @@ class FaceEffect:
+   for attempt in range(3):
+    alpha=getattr(acc,'last_alpha',None)
+    if alpha is None or alpha.shape!=(h,w):return out,lm
+-   if int((lips&(alpha<.5)).sum())<=max(4,total*.02):
++   if (lips&(alpha<.5)).any():
++    # A sliver of lip just outside the wearable's edge (the usual case on profiles):
++    # extend the wearable's own edge over it instead of moving the whole thing.
++    out,grown=grow_edge(out,alpha,lips)
++    if grown is not None:acc.last_alpha=alpha=grown;self.edge_grow_count=getattr(self,'edge_grow_count',0)+1
++   if int((lips&(alpha<.5)).sum())<=4:  # parser noise of a few isolated pixels is tolerated
+     if attempt:self.lip_fix_count=getattr(self,'lip_fix_count',0)+1
+     return out,lm
+    if attempt==2:break
+@@ -230,6 +235,23 @@ class FaceEffect:
+   if self.refiner:self.refiner.close()
+   if self.guard_model:self.guard_model.close()
+ 
++def grow_edge(out,alpha,need,max_px=10):
++ """Extend the rendered wearable by up to `max_px` pixels, only toward `need` pixels
++ (dilated by 2 px for margin), colouring new pixels from the wearable's own edge.
++ Returns (image, new alpha) or (out, None) when nothing could be reached."""
++ a=(alpha>.5).astype(np.float32);target=cv2.dilate(need.astype(np.uint8),np.ones((5,5),np.uint8))>0
++ if not (target&(a<.5)).any():return out,None
++ zone=cv2.dilate(target.astype(np.uint8),np.ones((2*max_px+1,2*max_px+1),np.uint8))>0
++ col=out.astype(np.float32)*a[...,None];added=np.zeros(a.shape,bool);k=np.ones((3,3),np.uint8)
++ for _ in range(max_px):
++  if not (target&(a<.5)).any():break
++  ring=(cv2.dilate(a,k)>0)&(a<.5)&zone
++  if not ring.any():break
++  s=cv2.blur(col,(3,3));wt=cv2.blur(a,(3,3))[ring][:,None]
++  col[ring]=s[ring]/np.maximum(wt,1e-6);a[ring]=1;added|=ring
++ if not added.any():return out,None
++ res=out.copy();res[added]=np.clip(np.rint(col[added]),0,255).astype(np.uint8);return res,np.maximum(alpha,a)
++
+ class ProductMatting:
+  """Union of person matting and general foreground segmentation, preserving held garments."""
+  def __init__(self,provider='cpu'):
+diff --git a/tests/test_lip_safety.py b/tests/test_lip_safety.py
+index 5cbe90a..d65e29b 100644
+--- a/tests/test_lip_safety.py
++++ b/tests/test_lip_safety.py
+@@ -53,10 +53,21 @@ def test_correct_landmarks_are_left_alone():
+ 
+ 
+ def test_mask_rendered_too_low_moves_onto_the_real_lips():
+-    e = effect((76, 84, 70, 90)); lm = landmarks(80, 100)  # lips are 20 px above the landmark mouth
++    e = effect((60, 68, 70, 90)); lm = landmarks(80, 100)  # lips 32 px above: too far to grow the edge
+     out, lm2 = run(e, lm)
+     assert out is not None and e.renderer.calls == 2 and getattr(e, 'lip_fix_count', 0) == 1
+-    assert np.asarray(lm2)[LIPS, 1].mean() < 90
++    assert np.asarray(lm2)[LIPS, 1].mean() < 80
++
++
++def test_thin_lip_sliver_at_the_edge_is_covered_by_growing_the_edge():
++    e = effect((84, 89, 70, 90)); lm = landmarks(80, 100)  # mask starts at y=88: rows 84-87 exposed
++    bgr = np.zeros((H, W, 3), np.uint8); out = np.full_like(bgr, 50)
++    e.renderer.accessory.draw(lm, 1.); out[e.renderer.accessory.last_alpha > .5] = 7
++    res, lm2 = e.lip_safety(bgr, lm, out)
++    assert res is not None and e.renderer.calls == 0 and e.edge_grow_count == 1
++    assert (res[84:89, 70:90] == 7).all()                    # sliver now wearable-coloured
++    assert (res[60:80, 70:90] == 50).all()                   # nothing grown far from the lips
++    assert np.allclose(lm2, lm)
+ 
+ 
+ def test_lips_that_cannot_be_covered_are_reported():
+-- 
+2.43.0
+

@@ -58,6 +58,7 @@ def render(src, out_silent, template, product, strict):
         'lip_check_moved_mask': getattr(effect, 'lip_fix_count', 0),
         'lip_still_exposed': getattr(effect, 'lip_exposed_count', 0),
         'lip_restored_after_occlusion': getattr(effect, 'lip_restored_count', 0),
+        'edge_grown_over_lips': getattr(effect, 'edge_grow_count', 0),
         'quality_counts': {k: q.count(k) for k in sorted(set(q))},
         'no_face_times': [round(k / fps, 2) for k, v in enumerate(q) if v == 'none'][:40],
         'seconds': round(time.time() - t0, 1),
