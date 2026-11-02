@@ -1,0 +1,13 @@
+total 852
+drwxr-xr-x   2 root root     62 Nov  2 19:22 .
+drwxr-xr-x 362 root root  20480 Nov  2 21:19 ..
+-rw-r--r--   1 root root 837605 Nov  2 18:09 thai-localized.mp4
+-rw-r--r--   2 root root   6178 Nov  2 18:09 worker.log
+stream|codec_type=video|width=576|height=1024|avg_frame_rate=30/1
+stream|codec_type=audio|avg_frame_rate=0/0
+format|duration=2.700000|size=837605
+total 684
+drwxr-xr-x  2 root root     60 Nov  2 21:45 .
+drwxr-xr-x 21 root root   4096 Nov  2 21:45 ..
+-rw-r--r--  1 root root    371 Nov  2 21:45 out.full
+-rw-r--r--  1 root root 690780 Nov  2 21:45 thai-localized.mp4
