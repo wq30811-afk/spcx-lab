@@ -1,0 +1,186 @@
+From 1e02b8bcbe2b1f0fd7d16d33ea4b1b2a5c325dc8 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 2 Nov 2026 19:25:58 +0900
+Subject: [PATCH] fix(mask): keep original frames when no mouth is visible
+ instead of stopping or mosaicking
+
+Frames without landmarks used to stop strict clothing exports or paint a face mosaic,
+even when the mouth was above the frame edge or the head was turned away. A current-frame
+check (face-skin segmentation + lip parsing) now keeps those frames untouched; visible but
+untracked lips, or any check failure, still use the existing guard.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015XEHdEnhr7p5ae4FL4TjbE
+---
+ app/mouth_region.py             |  7 ++++
+ app/processing.py               | 34 +++++++++++++++--
+ scripts/video_worker.py         |  2 +-
+ tests/test_mask_hidden_mouth.py | 67 +++++++++++++++++++++++++++++++++
+ 4 files changed, 106 insertions(+), 4 deletions(-)
+ create mode 100644 tests/test_mask_hidden_mouth.py
+
+diff --git a/app/mouth_region.py b/app/mouth_region.py
+index 02a53fc..0a5cbe6 100644
+--- a/app/mouth_region.py
++++ b/app/mouth_region.py
+@@ -31,6 +31,13 @@ class MouthRegion:
+   xy=center+((CANON[:,0]-anchor[0])*s)[:,None]*ex-((CANON[:,1]-anchor[1])*s)[:,None]*ey
+   return np.c_[xy,-CANON[:,2]*s].astype(np.float32)
+ 
++ def lip_pixels(self,roi,threshold=.4):
++  """Count lip/mouth-labelled pixels (512 grid) in a face-sized crop. Visibility test only, no geometry."""
++  if roi is None or not roi.size:return 0
++  rgb=cv2.cvtColor(cv2.resize(roi,(512,512)),cv2.COLOR_BGR2RGB).astype(np.float32)/255;rgb=(rgb-np.array([.485,.456,.406],np.float32))/np.array([.229,.224,.225],np.float32);r=self.s.run(None,{'input':rgb.transpose(2,0,1)[None]})[0][0]
++  logit=r-r.max(0,keepdims=True);probs=np.exp(logit);probs/=probs.sum(0,keepdims=True)
++  return int((probs[11:14].sum(0)>threshold).sum())
++
+  def detect_closeup(self,f):
+   # Face parsing requires a face-sized ROI; the full-body frame is not its
+   # training distribution. Always infer from fresh pixels, never borrow a mouth.
+diff --git a/app/processing.py b/app/processing.py
+index c584514..08dfa8d 100644
+--- a/app/processing.py
++++ b/app/processing.py
+@@ -27,7 +27,7 @@ class FaceEffect:
+   from .vision_runtime import base_options,cloud,Hands,verified_model
+   self.product_type=product_type;self.mp=mp;self.landmarker=vision.FaceLandmarker.create_from_options(vision.FaceLandmarkerOptions(base_options=base_options('face_landmarker.task',True),running_mode=vision.RunningMode.VIDEO,num_faces=1,min_face_detection_confidence=.45,min_tracking_confidence=.45))
+   from .mouth import MouthRenderer
+-  self.renderer=MouthRenderer(template,style,intensity,color,coverage);self.mouth_cover=self.renderer.template.get('kind')=='mouth-cover';self.fitted_mask=self.mouth_cover or bool(self.renderer.accessory and self.renderer.accessory.template.get('meshSet')=='fitmask');self.guard=guard;self.guarded_count=0;self.guard_model=None;self.guard_local_count=0;self.guard_full_count=0
++  self.renderer=MouthRenderer(template,style,intensity,color,coverage);self.mouth_cover=self.renderer.template.get('kind')=='mouth-cover';self.fitted_mask=self.mouth_cover or bool(self.renderer.accessory and self.renderer.accessory.template.get('meshSet')=='fitmask');self.guard=guard;self.guarded_count=0;self.hidden_mouth_count=0;self.guard_model=None;self.guard_local_count=0;self.guard_full_count=0
+   from .occlusion import FaceOcclusion
+   self.occlusion=FaceOcclusion()
+   self.hands=Hands() if cloud() else mp.solutions.hands.Hands(static_image_mode=False,max_num_hands=2,min_detection_confidence=.45,min_tracking_confidence=.45)
+@@ -48,14 +48,42 @@ class FaceEffect:
+   except Exception:
+    if self.product_type=='clothing':raise RuntimeError('面部局部保护失败，为避免改变衣服已停止处理；请检查素材或更换模板') from None
+    self.guard_full_count+=1;h,w=bgr.shape[:2];return cv2.resize(cv2.resize(bgr,(12,12)),(w,h),interpolation=cv2.INTER_NEAREST)
++ def mouth_visible(self,bgr):
++  """Current frame only: is any mouth visible that the wearable would have to cover?
++  No face skin, or face skin without lip pixels (face above the frame edge, back of
++  the head, turned away) means there is nothing to hide, so the original pixels are
++  correct. Any doubt or model failure answers True and keeps the existing guard."""
++  try:
++   from .face_guard import FaceGuard
++   if self.guard_model is None:self.guard_model=FaceGuard()
++   h,w=bgr.shape[:2];face=self.guard_model.probability(bgr)
++   if face.shape!=(h,w):face=cv2.resize(face,(w,h),interpolation=cv2.INTER_LINEAR)
++   skin=face>.35
++   if skin.sum()<max(64,h*w*.0004):return False
++   ys,xs=np.where(skin);x0,x1,y0,y1=xs.min(),xs.max(),ys.min(),ys.max();side=max(x1-x0,y1-y0,48)*1.5;cx=(x0+x1)/2;cy=(y0+y1)/2
++   roi=bgr[max(0,int(cy-side/2)):min(h,int(cy+side/2)),max(0,int(cx-side/2)):min(w,int(cx+side/2))]
++   if self.mouth_refiner is None:
++    from .mouth_region import MouthRegion
++    self.mouth_refiner=MouthRegion()
++   return self.mouth_refiner.lip_pixels(roi)>=12
++  except Exception:
++   return True
++ def untracked(self,bgr,index):
++  self.previous=None
++  if not(self.fitted_mask and self.guard=='protect'):return bgr
++  if not self.mouth_visible(bgr):
++   self.hidden_mouth_count=getattr(self,'hidden_mouth_count',0)+1
++   if getattr(self,'qualities',None) and index<len(self.qualities):self.qualities[index]='mouth_hidden'
++   return bgr
++  return self.protected(bgr)
+  def apply(self,bgr,index,fps):
+   h,w=bgr.shape[:2];rgb=cv2.cvtColor(bgr,cv2.COLOR_BGR2RGB)
+   if self.cached is not None:
+    lm=self.cached[index] if index<len(self.cached) else None
+-   if lm is None:self.previous=None;return self.protected(bgr) if self.fitted_mask and self.guard=='protect' else bgr
++   if lm is None:return self.untracked(bgr,index)
+   else:
+    result=self.landmarker.detect_for_video(self.mp.Image(image_format=self.mp.ImageFormat.SRGB,data=rgb),int(index*1000/fps))
+-   if not result.face_landmarks:self.previous=None;return self.protected(bgr) if self.fitted_mask and self.guard=='protect' else bgr
++   if not result.face_landmarks:return self.untracked(bgr,index)
+    lm=np.array([(p.x*w,p.y*h,p.z*w) for p in result.face_landmarks[0]],np.float32)
+   out=self.renderer.apply(bgr,lm,self.scale,self.opacity,self.offset)
+   if self.fitted_mask and self.guard=='protect' and (self.renderer.last_coverage if self.mouth_cover else self.renderer.accessory.last_coverage)<.98:return self.protected(bgr,lm)
+diff --git a/scripts/video_worker.py b/scripts/video_worker.py
+index 0879b81..f0bdb9f 100644
+--- a/scripts/video_worker.py
++++ b/scripts/video_worker.py
+@@ -62,7 +62,7 @@ try:
+  result={'asset':store.public_asset(a),'meta':meta}
+  if c.get('face'):result['face_segment_check']=face_checks;result['face_frame_check']=[dict(sample,segment=chunk['segment']) for chunk in face_checks for sample in chunk['samples']];result['face_enhanced']=bool(c.get('face_enhance'));result['face_profile']={k:c.get(k) for k in ('face_preset','face_enhance','face_enhance_blend','face_pixel_boost','face_mask_blur')}
+  if c.get('mask'):result['fan_mouth_frames']=getattr(effect,'fan_count',0);result['optical_flow_frames']=getattr(effect,'flow_count',0);result['adaptive_fit_frames']=getattr(effect.renderer.accessory,'adjusted_frames',0) if effect.renderer.accessory else 0
+- if c.get('mask'):result['guard_local_frames']=effect.guard_local_count;result['guard_full_frames']=effect.guard_full_count;result['guarded_frames']=effect.guarded_count;result['tracked_frames']=effect.tracked;result['total_frames']=total;result['detected_frames']=effect.detected_count;result['mouth_refined_frames']=effect.mouth_refined_count;result['semantic_rescued_frames']=effect.occlusion.rescued_frames;result['refined_frames']=effect.refined_count;result['five_point_frames']=effect.five_point_count;result['interpolated_frames']=effect.filled_count;result['notice']=f'特效跟踪覆盖 {effect.tracked}/{total} 帧，含人脸区域细化 {effect.refined_count} 帧（含嘴部重定位 {effect.mouth_refined_count} 帧）、5点辅助 {effect.five_point_count} 帧、插值 {effect.filled_count} 帧。请检查侧脸、佩戴边缘与遮挡处。'+(f' 定位/覆盖不足保护画面 {effect.guarded_count} 帧，其中局部 {effect.guard_local_count}、整幅 {effect.guard_full_count}（不计佩戴成功）。' if effect.fitted_mask else '')
++ if c.get('mask'):result['guard_local_frames']=effect.guard_local_count;result['mouth_hidden_frames']=effect.hidden_mouth_count;result['guard_full_frames']=effect.guard_full_count;result['guarded_frames']=effect.guarded_count;result['tracked_frames']=effect.tracked;result['total_frames']=total;result['detected_frames']=effect.detected_count;result['mouth_refined_frames']=effect.mouth_refined_count;result['semantic_rescued_frames']=effect.occlusion.rescued_frames;result['refined_frames']=effect.refined_count;result['five_point_frames']=effect.five_point_count;result['interpolated_frames']=effect.filled_count;result['notice']=f'特效跟踪覆盖 {effect.tracked}/{total} 帧，含人脸区域细化 {effect.refined_count} 帧（含嘴部重定位 {effect.mouth_refined_count} 帧）、5点辅助 {effect.five_point_count} 帧、插值 {effect.filled_count} 帧。请检查侧脸、佩戴边缘与遮挡处。'+(f' 定位/覆盖不足保护画面 {effect.guarded_count} 帧，其中局部 {effect.guard_local_count}、整幅 {effect.guard_full_count}（不计佩戴成功）。' if effect.fitted_mask else '')+(f' 嘴部不在画面内、保留原画面 {effect.hidden_mouth_count} 帧。' if effect.hidden_mouth_count else '')
+  import shutil
+  for name in ['source.mp4','face.mp4','face-audio.mp4','processed.mp4','with-audio.mp4']:
+   (work/name).unlink(missing_ok=True)
+diff --git a/tests/test_mask_hidden_mouth.py b/tests/test_mask_hidden_mouth.py
+new file mode 100644
+index 0000000..859fb18
+--- /dev/null
++++ b/tests/test_mask_hidden_mouth.py
+@@ -0,0 +1,67 @@
++import numpy as np
++import pytest
++from app.processing import FaceEffect
++
++
++class Skin:
++    """Stub FaceGuard: face-skin probability map, or a failure."""
++    def __init__(self, prob=None, fail=False):
++        self.prob, self.fail = prob, fail
++    def probability(self, bgr):
++        if self.fail: raise RuntimeError('segmenter unavailable')
++        return self.prob
++    def mask(self, bgr):
++        raise AssertionError('semantic mosaic must not run in strict clothing mode')
++
++
++class Lips:
++    def __init__(self, count): self.count = count; self.calls = 0
++    def lip_pixels(self, roi): self.calls += 1; return self.count
++
++
++def effect(prob=None, lips=0, fail=False):
++    e = FaceEffect.__new__(FaceEffect)
++    e.fitted_mask = True; e.guard = 'protect'; e.product_type = 'clothing'; e.strict_product = True
++    e.guarded_count = e.guard_local_count = e.guard_full_count = e.hidden_mouth_count = 0
++    e.guard_model = Skin(prob, fail); e.mouth_refiner = Lips(lips)
++    e.cached = [None]; e.qualities = ['none']; e.previous = None
++    return e
++
++
++def frame(): return np.full((120, 80, 3), 90, np.uint8)
++
++
++def chin_only():
++    p = np.zeros((120, 80), np.float32); p[0:20, 25:55] = .9  # face skin cut by the top edge
++    return p
++
++
++def test_no_face_skin_keeps_original_frame_in_strict_clothing_mode():
++    e = effect(np.zeros((120, 80), np.float32))
++    f = frame(); out = e.apply(f, 0, 24)
++    assert out is f and e.hidden_mouth_count == 1 and e.qualities[0] == 'mouth_hidden'
++    assert e.mouth_refiner.calls == 0
++
++
++def test_face_without_lips_keeps_original_frame():
++    e = effect(chin_only(), lips=0)
++    f = frame(); out = e.apply(f, 0, 24)
++    assert out is f and e.hidden_mouth_count == 1 and e.guarded_count == 0
++
++
++def test_visible_lips_without_landmarks_still_stop_clothing_export():
++    e = effect(chin_only(), lips=40)
++    with pytest.raises(RuntimeError, match='避免改变衣服或露嘴'):
++        e.apply(frame(), 0, 24)
++    assert e.hidden_mouth_count == 0
++
++
++def test_visibility_check_failure_falls_back_to_existing_guard():
++    e = effect(fail=True)
++    with pytest.raises(RuntimeError, match='避免改变衣服或露嘴'):
++        e.apply(frame(), 0, 24)
++
++
++def test_unguarded_templates_are_unchanged():
++    e = effect(np.zeros((120, 80), np.float32)); e.fitted_mask = False
++    f = frame(); assert e.apply(f, 0, 24) is f and e.hidden_mouth_count == 0
+-- 
+2.43.0
+
