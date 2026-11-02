@@ -1,0 +1,103 @@
+== job 009-lip-audit  2026-11-02 20:04:54
+{
+ "base": "main",
+ "patches": [
+  "patches/fix-mask-keep-original-frames-when-no-mouth-is-vis.patch",
+  "patches/fix-mask-slide-the-wearable-out-at-frame-edges-so-.patch",
+  "patches/fix-mask-pixel-level-lip-check-keeps-the-wearable-.patch",
+  "patches/feat-mask-landmark-smoothing.patch",
+  "patches/fix-mask-lips-survive-occlusion.patch",
+  "patches/fix-mask-smoothing-mixed-sets.patch",
+  "patches/fix-mask-grow-edge-over-lips.patch",
+  "patches/fix-mask-padded-edge-crops.patch"
+ ],
+ "steps": [
+  {
+   "kind": "audit",
+   "video": "/root/autodl-tmp/spcx-test/mask-test.mp4",
+   "job": "001-mask-lip-safety",
+   "of": "v4-toon"
+  },
+  {
+   "kind": "audit",
+   "video": "/root/autodl-tmp/spcx-test/mask-test.mp4",
+   "job": "007-mask-v7",
+   "of": "v7-toon"
+  },
+  {
+   "kind": "audit",
+   "video": "/root/autodl-tmp/spcx-test/mask-test.mp4",
+   "job": "008-mask-v8",
+   "of": "v8-toon"
+  },
+  {
+   "kind": "audit",
+   "video": "/root/autodl-tmp/spcx-test/mask-test.mp4",
+   "job": "008-mask-v8",
+   "of": "v8-kf94"
+  }
+ ]
+}
+== spcx-test at 1e6eed4 docs: record v25 dual-entry release and real export acceptance
+== apply patches/fix-mask-keep-original-frames-when-no-mouth-is-vis.patch
+== apply patches/fix-mask-slide-the-wearable-out-at-frame-edges-so-.patch
+== apply patches/fix-mask-pixel-level-lip-check-keeps-the-wearable-.patch
+== apply patches/feat-mask-landmark-smoothing.patch
+== apply patches/fix-mask-lips-survive-occlusion.patch
+== apply patches/fix-mask-smoothing-mixed-sets.patch
+== apply patches/fix-mask-grow-edge-over-lips.patch
+== apply patches/fix-mask-padded-edge-crops.patch
+ M app/accessories.py
+ M app/face_flow_gaps.py
+ M app/mouth_region.py
+ M app/processing.py
+ M scripts/video_worker.py
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/lip_audit.py /root/autodl-tmp/spcx-test/mask-test.mp4 /root/autodl-tmp/spcx-lab-work/001-mask-lip-safety/v4-toon/mask-mask-toon-matte.mp4 /root/autodl-tmp/spcx-lab/results/009-lip-audit/001-mask-lip-safety-v4-toon/audit
+[0;93m2026-11-02 20:05:01.730238374 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 20:05:01.730273992 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 20:05:01.730286633 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793621101.758426  266871 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793621101.811877  266905 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1793621101.886995  266909 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/root/autodl-tmp/spcx/.venv/lib/python3.12/site-packages/mediapipe/tasks/python/vision/image_segmenter.py:158: UserWarning: MessageFactory class is deprecated. Please use GetMessageClass() instead of MessageFactory.GetPrototype. MessageFactory class will be removed after 2024.
+  graph_config = self._runner.get_graph_config()
+{"frames": 721, "frames_with_lips": 578, "frames_exposed": 10, "worst": [{"frame": 344, "exposed_px": 1102}, {"frame": 345, "exposed_px": 314}, {"frame": 346, "exposed_px": 19}, {"frame": 403, "exposed_px": 12}, {"frame": 405, "exposed_px": 10}, {"frame": 408, "exposed_px": 10}, {"frame": 389, "exposed_px": 9}, {"frame": 406, "exposed_px": 8}, {"frame": 390, "exposed_px": 7}, {"frame": 455, "exposed_px": 7}], "exposed_times": [14.33, 14.38, 14.42, 16.21, 16.25, 16.79, 16.88, 16.92, 17.0, 18.96]}
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/lip_audit.py /root/autodl-tmp/spcx-test/mask-test.mp4 /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-toon/mask-mask-toon-matte.mp4 /root/autodl-tmp/spcx-lab/results/009-lip-audit/007-mask-v7-v7-toon/audit
+[0;93m2026-11-02 20:08:23.238050500 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 20:08:23.238086191 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 20:08:23.238097903 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793621303.265793  267505 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793621303.310965  267539 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1793621303.386784  267542 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/root/autodl-tmp/spcx/.venv/lib/python3.12/site-packages/mediapipe/tasks/python/vision/image_segmenter.py:158: UserWarning: MessageFactory class is deprecated. Please use GetMessageClass() instead of MessageFactory.GetPrototype. MessageFactory class will be removed after 2024.
+  graph_config = self._runner.get_graph_config()
+{"frames": 721, "frames_with_lips": 578, "frames_exposed": 3, "worst": [{"frame": 344, "exposed_px": 454}, {"frame": 345, "exposed_px": 250}, {"frame": 346, "exposed_px": 16}], "exposed_times": [14.33, 14.38, 14.42]}
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/lip_audit.py /root/autodl-tmp/spcx-test/mask-test.mp4 /root/autodl-tmp/spcx-lab-work/008-mask-v8/v8-toon/mask-mask-toon-matte.mp4 /root/autodl-tmp/spcx-lab/results/009-lip-audit/008-mask-v8-v8-toon/audit
+[0;93m2026-11-02 20:11:41.458502932 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 20:11:41.458545369 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 20:11:41.458557537 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793621501.491296  270920 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793621501.550775  270954 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1793621501.633936  270957 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/root/autodl-tmp/spcx/.venv/lib/python3.12/site-packages/mediapipe/tasks/python/vision/image_segmenter.py:158: UserWarning: MessageFactory class is deprecated. Please use GetMessageClass() instead of MessageFactory.GetPrototype. MessageFactory class will be removed after 2024.
+  graph_config = self._runner.get_graph_config()
+{"frames": 721, "frames_with_lips": 578, "frames_exposed": 3, "worst": [{"frame": 344, "exposed_px": 454}, {"frame": 345, "exposed_px": 250}, {"frame": 346, "exposed_px": 16}], "exposed_times": [14.33, 14.38, 14.42]}
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/lip_audit.py /root/autodl-tmp/spcx-test/mask-test.mp4 /root/autodl-tmp/spcx-lab-work/008-mask-v8/v8-kf94/mask-mask-kf94-boat.mp4 /root/autodl-tmp/spcx-lab/results/009-lip-audit/008-mask-v8-v8-kf94/audit
+[0;93m2026-11-02 20:14:54.829084808 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 20:14:54.829283879 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 20:14:54.829298693 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793621694.859604  274100 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793621694.919960  274134 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1793621694.998135  274137 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/root/autodl-tmp/spcx/.venv/lib/python3.12/site-packages/mediapipe/tasks/python/vision/image_segmenter.py:158: UserWarning: MessageFactory class is deprecated. Please use GetMessageClass() instead of MessageFactory.GetPrototype. MessageFactory class will be removed after 2024.
+  graph_config = self._runner.get_graph_config()
+{"frames": 721, "frames_with_lips": 578, "frames_exposed": 27, "worst": [{"frame": 344, "exposed_px": 524}, {"frame": 345, "exposed_px": 247}, {"frame": 336, "exposed_px": 50}, {"frame": 333, "exposed_px": 45}, {"frame": 338, "exposed_px": 40}, {"frame": 383, "exposed_px": 39}, {"frame": 382, "exposed_px": 31}, {"frame": 381, "exposed_px": 29}, {"frame": 339, "exposed_px": 27}, {"frame": 330, "exposed_px": 26}, {"frame": 337, "exposed_px": 25}, {"frame": 335, "exposed_px": 24}], "exposed_times": [13.71, 13.75, 13.79, 13.83, 13.88, 13.92, 13.96, 14.0, 14.04, 14.08, 14.12, 14.17, 14.21, 14.25, 14.29, 14.33, 14.38, 14.42, 15.67, 15.71, 15.75, 15.79, 15.88, 15.92, 15.96, 16.0, 16.04]}
+== exit 0  2026-11-02 20:17:51
