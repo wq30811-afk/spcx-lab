@@ -1,0 +1,29 @@
+{
+ "base": "main",
+ "patches": [
+  "patches/fix-mask-keep-original-frames-when-no-mouth-is-vis.patch",
+  "patches/fix-mask-slide-the-wearable-out-at-frame-edges-so-.patch",
+  "patches/fix-mask-pixel-level-lip-check-keeps-the-wearable-.patch",
+  "patches/feat-mask-landmark-smoothing.patch",
+  "patches/fix-mask-lips-survive-occlusion.patch"
+ ],
+ "steps": [
+  {
+   "kind": "pytest",
+   "tests": [
+    "tests/test_landmark_smooth.py",
+    "tests/test_lip_safety.py",
+    "tests/test_edge_exit.py",
+    "tests/test_mask_hidden_mouth.py",
+    "tests/test_product_context.py"
+   ]
+  },
+  {
+   "kind": "mask",
+   "video": "/root/autodl-tmp/spcx-test/mask-test.mp4",
+   "template": "mask-toon-matte",
+   "product": "clothing",
+   "name": "v6-toon"
+  }
+ ]
+}
