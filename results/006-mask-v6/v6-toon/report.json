@@ -1,0 +1,41 @@
+{
+ "source": {
+  "width": 720,
+  "height": 1280,
+  "fps": 24.0,
+  "duration": 30.059,
+  "audio": true,
+  "bytes": 7956991
+ },
+ "run1_production": {
+  "product_mode": "clothing",
+  "strict": true,
+  "template": "mask-toon-matte",
+  "frames_total": 721,
+  "frames_rendered": 721,
+  "stopped": null,
+  "tracked_frames": 667,
+  "guarded_frames": 0,
+  "guard_local": 0,
+  "guard_full": 0,
+  "detected_direct": 449,
+  "mouth_hidden_kept_original": 54,
+  "edge_exit_frames": 36,
+  "lip_check_moved_mask": 1,
+  "lip_still_exposed": 0,
+  "lip_restored_after_occlusion": 179,
+  "quality_counts": {
+   "direct": 245,
+   "edge_exit": 36,
+   "fan_mouth": 84,
+   "five_point": 3,
+   "flow": 216,
+   "mouth_hidden": 54,
+   "mouth_region": 80,
+   "refined": 1,
+   "reverse_flow": 2
+  },
+  "no_face_times": [],
+  "seconds": 253.7
+ }
+}
