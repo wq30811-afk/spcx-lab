@@ -1,0 +1,57 @@
+== models
+download-progress.json
+f5-base
+manifest.json
+musetalk
+omnivoice
+openvoice-v2
+sd-vae
+thonburian
+vocos
+whisper-tiny
+whisper-turbo
+3.2G	/root/autodl-tmp/spcx/models/speech/musetalk
+2.0G	/root/autodl-tmp/spcx/models/speech/omnivoice
+1.6G	/root/autodl-tmp/spcx/models/speech/whisper-turbo
+1.3G	/root/autodl-tmp/spcx/models/speech/thonburian
+1.3G	/root/autodl-tmp/spcx/models/speech/f5-base
+320M	/root/autodl-tmp/spcx/models/speech/sd-vae
+145M	/root/autodl-tmp/spcx/models/speech/whisper-tiny
+126M	/root/autodl-tmp/spcx/models/speech/openvoice-v2
+52M	/root/autodl-tmp/spcx/models/speech/vocos
+8.0K	/root/autodl-tmp/spcx/models/speech/manifest.json
+8.0K	/root/autodl-tmp/spcx/models/speech/download-progress.json
+== envs
+/root/autodl-tmp/spcx/.ai-env
+/root/autodl-tmp/spcx/.face-env
+/root/autodl-tmp/spcx/.speech-env
+/root/autodl-tmp/spcx/.venv
+speech-env torch 2.8.0+cu128 True
+== recent language jobs
+2026-11-02T21:19 language_video completed cabfa60f lip_sync= True face= False dur= 2.7 | 泰语 · 泰国视频已完成，请预览台词、声音、口型和服装后使用 | q: {}
+2026-11-02T18:08 language_video completed 67174903 lip_sync= True face= False dur= 0.0 | 泰语视频已完成，请预览台词、口型和服装后使用 | q: {}
+2026-11-02T08:13 language_video completed 757d3e45 lip_sync= True face= False dur= 0 | 泰语视频已完成，请预览台词、口型和服装后使用 | q: {}
+2026-11-02T08:13 language_video completed b884605a lip_sync= True face= False dur= 0 | 泰语视频已完成，请预览台词、口型和服装后使用 | q: {}
+2026-11-02T08:10 language_video cancelled f8c4ade7 lip_sync= True face= False dur= 0 | 任务已取消，已完成的其他文件保留 | q: {}
+2026-11-02T08:10 language_video cancelled 4236fbef lip_sync= True face= False dur= 0 | 任务已取消，已完成的其他文件保留 | q: {}
+2026-11-02T08:04 language_video completed f40ffd3f lip_sync= True face= False dur= 0 | 泰语视频已完成，请预览台词、口型和服装后使用 | q: {}
+2026-11-02T08:04 language_video completed 7d7e0546 lip_sync= True face= False dur= 0 | 泰语视频已完成，请预览台词、口型和服装后使用 | q: {}
+2026-11-02T05:34 language_video completed fb5bee56 lip_sync= True face= True dur= 0 | 泰语视频已完成，请预览台词、口型和服装后使用 | q: {}
+2026-11-02T05:34 language_video completed 8705bce0 lip_sync= True face= True dur= 0 | 泰语视频已完成，请预览台词、口型和服装后使用 | q: {}
+2026-11-02T05:24 language_video completed acad30f6 lip_sync= True face= False dur= 0.0 | 泰语视频已完成，请预览台词、口型和服装后使用 | q: {}
+2026-11-02T05:24 language_video completed 3dd3f5e8 lip_sync= True face= False dur= 0.0 | 泰语视频已完成，请预览台词、口型和服装后使用 | q: {}
+== localized outputs on disk
+/root/autodl-tmp/spcx/work/jobs/cabfa60fd9fd43f6a65f43676eef15f0/thai-localized.mp4
+/root/autodl-tmp/spcx/work/jobs/6717490304d343a5bcba94d4696ca3db/thai-localized.mp4
+-- /root/autodl-tmp/spcx/work/jobs/cabfa60fd9fd43f6a65f43676eef15f0/thai-localized.mp4.quality.json
+{
+  "frames": 81,
+  "localized_frames": 81,
+  "unlocalized_frames": 0,
+  "mouth_outside_frames": 0,
+  "clothing_policy": "original pixels outside mouth/face mask before final encoding",
+  "whole_frame_generation": false,
+  "fan_mouth_frames": 0,
+  "reverse_flow_assisted_frames": 0,
+  "optical_flow_assisted_frames": 0
+}
