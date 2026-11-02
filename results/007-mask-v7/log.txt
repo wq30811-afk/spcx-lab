@@ -1,0 +1,230 @@
+== job 007-mask-v7  2026-11-02 19:41:19
+{
+ "base": "main",
+ "patches": [
+  "patches/fix-mask-keep-original-frames-when-no-mouth-is-vis.patch",
+  "patches/fix-mask-slide-the-wearable-out-at-frame-edges-so-.patch",
+  "patches/fix-mask-pixel-level-lip-check-keeps-the-wearable-.patch",
+  "patches/feat-mask-landmark-smoothing.patch",
+  "patches/fix-mask-lips-survive-occlusion.patch",
+  "patches/fix-mask-smoothing-mixed-sets.patch",
+  "patches/fix-mask-grow-edge-over-lips.patch"
+ ],
+ "steps": [
+  {
+   "kind": "pytest",
+   "tests": [
+    "tests/test_landmark_smooth.py",
+    "tests/test_lip_safety.py",
+    "tests/test_edge_exit.py",
+    "tests/test_mask_hidden_mouth.py",
+    "tests/test_product_context.py"
+   ]
+  },
+  {
+   "kind": "mask",
+   "video": "/root/autodl-tmp/spcx-test/mask-test.mp4",
+   "template": "mask-toon-matte",
+   "product": "clothing",
+   "name": "v7-toon"
+  },
+  {
+   "kind": "mask",
+   "video": "/root/autodl-tmp/spcx-test/mask-test.mp4",
+   "template": "mask-kf94-boat",
+   "product": "clothing",
+   "name": "v7-kf94"
+  }
+ ]
+}
+== spcx-test at 1e6eed4 docs: record v25 dual-entry release and real export acceptance
+== apply patches/fix-mask-keep-original-frames-when-no-mouth-is-vis.patch
+== apply patches/fix-mask-slide-the-wearable-out-at-frame-edges-so-.patch
+== apply patches/fix-mask-pixel-level-lip-check-keeps-the-wearable-.patch
+== apply patches/feat-mask-landmark-smoothing.patch
+== apply patches/fix-mask-lips-survive-occlusion.patch
+== apply patches/fix-mask-smoothing-mixed-sets.patch
+== apply patches/fix-mask-grow-edge-over-lips.patch
+ M app/accessories.py
+ M app/face_flow_gaps.py
+ M app/mouth_region.py
+ M app/processing.py
+ M scripts/video_worker.py
+$ /root/autodl-tmp/spcx/.venv/bin/python -m pytest -q tests/test_landmark_smooth.py tests/test_lip_safety.py tests/test_edge_exit.py tests/test_mask_hidden_mouth.py tests/test_product_context.py
+.........................                                                [100%]
+25 passed in 0.47s
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/mask_test.py /root/autodl-tmp/spcx-test/mask-test.mp4 /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-toon --template mask-toon-matte --product clothing
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619690.938945  262007 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793619691.013111  262222 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793619691.014083  262007 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+INFO: Created TensorFlow Lite delegate for GPU.
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+I0000 00:00:1793619692.018447  262007 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793619692.052600  262290 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793619692.052637  262290 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+I0000 00:00:1793619692.198132  262007 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793619692.236486  262345 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793619692.236537  262345 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+E0000 00:00:1793619692.496621  262222 tensor.cc:410] Tensors are designed for single writes. Multiple writes to a Tensor instance are not supported and may lead to undefined behavior due to lack of synchronization.
+prepare source
+run 1: production behaviour (clothing)
+  tracking 5/721  tracking 10/721  tracking 15/721  tracking 20/721  tracking 25/721  tracking 30/721  tracking 35/721  tracking 40/721  tracking 45/721  tracking 50/721  tracking 55/721  tracking 60/721  tracking 65/721  tracking 70/721  tracking 75/721  tracking 80/721  tracking 85/721  tracking 90/721  tracking 95/721  tracking 100/721  tracking 105/721  tracking 110/721  tracking 115/721  tracking 120/721  tracking 125/721  tracking 130/721  tracking 135/721  tracking 140/721  tracking 145/721  tracking 150/721  tracking 155/721  tracking 160/721  tracking 165/721  tracking 170/721  tracking 175/721  tracking 180/721  tracking 185/721  tracking 190/721I0000 00:00:1793619701.171415  262007 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793619701.214479  262414 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793619701.214522  262414 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793619701.214990  262007 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+W0000 00:00:1793619701.225648  262421 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1793619701.258196  262424 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+  tracking 195/721  tracking 200/721  tracking 205/721  tracking 210/721  tracking 215/721  tracking 220/721  tracking 225/721  tracking 230/721  tracking 235/721  tracking 240/721  tracking 245/721  tracking 250/721  tracking 255/721  tracking 260/721  tracking 265/721  tracking 270/721  tracking 275/721  tracking 280/721  tracking 285/721  tracking 290/721  tracking 295/721  tracking 300/721  tracking 305/721  tracking 310/721  tracking 315/721  tracking 320/721  tracking 325/721  tracking 330/721  tracking 335/721  tracking 340/721  tracking 345/721  tracking 350/721  tracking 355/721  tracking 360/721  tracking 365/721  tracking 370/721  tracking 375/721  tracking 380/721  tracking 385/721  tracking 390/721  tracking 395/721  tracking 400/721  tracking 405/721  tracking 410/721  tracking 415/721  tracking 420/721  tracking 425/721  tracking 430/721  tracking 435/721  tracking 440/721  tracking 445/721  tracking 450/721  tracking 455/721  tracking 460/721  tracking 465/721  tracking 470/721  tracking 475/721  tracking 480/721  tracking 485/721  tracking 490/721  tracking 495/721  tracking 500/721  tracking 505/721  tracking 510/721  tracking 515/721  tracking 520/721  tracking 525/721  tracking 530/721  tracking 535/721  tracking 540/721  tracking 545/721  tracking 550/721  tracking 555/721  tracking 560/721  tracking 565/721  tracking 570/721  tracking 575/721  tracking 580/721  tracking 585/721  tracking 590/721  tracking 595/721  tracking 600/721  tracking 605/721  tracking 610/721  tracking 615/721  tracking 620/721  tracking 625/721  tracking 630/721  tracking 635/721  tracking 640/721  tracking 645/721  tracking 650/721  tracking 655/721  tracking 660/721  tracking 665/721  tracking 670/721  tracking 675/721  tracking 680/721  tracking 685/721  tracking 690/721  tracking 695/721  tracking 700/721  tracking 705/721  tracking 710/721  tracking 715/721  tracking 720/721[0;93m2026-11-02 19:42:47.554144060 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 19:42:47.554700902 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 19:42:47.554715041 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+I0000 00:00:1793619767.555504  262007 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793619767.598784  262529 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793619767.598833  262529 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793619767.650583  262534 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/root/autodl-tmp/spcx/.venv/lib/python3.12/site-packages/mediapipe/tasks/python/vision/image_segmenter.py:158: UserWarning: MessageFactory class is deprecated. Please use GetMessageClass() instead of MessageFactory.GetPrototype. MessageFactory class will be removed after 2024.
+  graph_config = self._runner.get_graph_config()
+[1;31m2026-11-02 19:42:47.841554291 [E:onnxruntime:Default, cudnn_fe_call.cc:33 CudaErrString<cudnn_frontend::error_object>] [cudnn_frontend] Error: No execution plans support the graph.[m
+W0000 00:00:1793619767.989718  262307 landmark_projection_calculator.cc:186] Using NORM_RECT without IMAGE_DIMENSIONS is only supported for the square ROI. Provide IMAGE_DIMENSIONS or use PROJECTION_MATRIX.
+
+  render 24/721  render 48/721  render 72/721  render 96/721  render 120/721  render 144/721  render 168/721  render 192/721[0;93m2026-11-02 19:43:37.222411887 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 19:43:37.222451166 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 19:43:37.222461354 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+I0000 00:00:1793619817.223136  262007 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793619817.263417  262669 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793619817.263459  262669 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793619817.316082  262670 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+  render 216/721  render 240/721  render 264/721  render 288/721  render 312/721  render 336/721  render 360/721  render 384/721  render 408/721  render 432/721  render 456/721  render 480/721  render 504/721  render 528/721  render 552/721  render 576/721  render 600/721  render 624/721  render 648/721  render 672/721  render 696/721  render 720/721
+{
+ "source": {
+  "width": 720,
+  "height": 1280,
+  "fps": 24.0,
+  "duration": 30.059,
+  "audio": true,
+  "bytes": 7956991
+ },
+ "run1_production": {
+  "product_mode": "clothing",
+  "strict": true,
+  "template": "mask-toon-matte",
+  "frames_total": 721,
+  "frames_rendered": 721,
+  "stopped": null,
+  "tracked_frames": 667,
+  "guarded_frames": 0,
+  "guard_local": 0,
+  "guard_full": 0,
+  "detected_direct": 449,
+  "mouth_hidden_kept_original": 54,
+  "edge_exit_frames": 36,
+  "lip_check_moved_mask": 0,
+  "lip_still_exposed": 0,
+  "lip_restored_after_occlusion": 179,
+  "edge_grown_over_lips": 1,
+  "quality_counts": {
+   "direct": 245,
+   "edge_exit": 36,
+   "fan_mouth": 84,
+   "five_point": 3,
+   "flow": 216,
+   "mouth_hidden": 54,
+   "mouth_region": 80,
+   "refined": 1,
+   "reverse_flow": 2
+  },
+  "no_face_times": [],
+  "seconds": 262.7
+ }
+}
+done -> /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-toon/mask-mask-toon-matte.mp4 /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-toon/compare.mp4
+$ /root/autodl-tmp/spcx-test/bin/ffmpeg -hide_banner -loglevel error -y -i /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-toon/compare.mp4 -vf scale=720:-2 -c:v libx264 -crf 24 -preset fast -an /root/autodl-tmp/spcx-lab/results/007-mask-v7/v7-toon/compare.mp4
+full-resolution output kept on server: /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-toon
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/mask_test.py /root/autodl-tmp/spcx-test/mask-test.mp4 /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-kf94 --template mask-kf94-boat --product clothing
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619968.254604  263157 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793619968.324873  263289 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793619968.326059  263157 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+INFO: Created TensorFlow Lite delegate for GPU.
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+I0000 00:00:1793619969.306786  263157 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793619969.346124  263357 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793619969.346163  263357 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+I0000 00:00:1793619969.488134  263157 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793619969.533827  263410 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793619969.534518  263410 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+E0000 00:00:1793619969.810954  263289 tensor.cc:410] Tensors are designed for single writes. Multiple writes to a Tensor instance are not supported and may lead to undefined behavior due to lack of synchronization.
+prepare source
+run 1: production behaviour (clothing)
+  tracking 5/721  tracking 10/721  tracking 15/721  tracking 20/721  tracking 25/721  tracking 30/721  tracking 35/721  tracking 40/721  tracking 45/721  tracking 50/721  tracking 55/721  tracking 60/721  tracking 65/721  tracking 70/721  tracking 75/721  tracking 80/721  tracking 85/721  tracking 90/721  tracking 95/721  tracking 100/721  tracking 105/721  tracking 110/721  tracking 115/721  tracking 120/721  tracking 125/721  tracking 130/721  tracking 135/721  tracking 140/721  tracking 145/721  tracking 150/721  tracking 155/721  tracking 160/721  tracking 165/721  tracking 170/721  tracking 175/721  tracking 180/721  tracking 185/721  tracking 190/721I0000 00:00:1793619976.280654  263157 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793619976.322183  263477 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793619976.322220  263477 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793619976.322662  263157 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+W0000 00:00:1793619976.332296  263484 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1793619976.363743  263492 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+  tracking 195/721  tracking 200/721  tracking 205/721  tracking 210/721  tracking 215/721  tracking 220/721  tracking 225/721  tracking 230/721  tracking 235/721  tracking 240/721  tracking 245/721  tracking 250/721  tracking 255/721  tracking 260/721  tracking 265/721  tracking 270/721  tracking 275/721  tracking 280/721  tracking 285/721  tracking 290/721  tracking 295/721  tracking 300/721  tracking 305/721  tracking 310/721  tracking 315/721  tracking 320/721  tracking 325/721  tracking 330/721  tracking 335/721  tracking 340/721  tracking 345/721  tracking 350/721  tracking 355/721  tracking 360/721  tracking 365/721  tracking 370/721  tracking 375/721  tracking 380/721  tracking 385/721  tracking 390/721  tracking 395/721  tracking 400/721  tracking 405/721  tracking 410/721  tracking 415/721  tracking 420/721  tracking 425/721  tracking 430/721  tracking 435/721  tracking 440/721  tracking 445/721  tracking 450/721  tracking 455/721  tracking 460/721  tracking 465/721  tracking 470/721  tracking 475/721  tracking 480/721  tracking 485/721  tracking 490/721  tracking 495/721  tracking 500/721  tracking 505/721  tracking 510/721  tracking 515/721  tracking 520/721  tracking 525/721  tracking 530/721  tracking 535/721  tracking 540/721  tracking 545/721  tracking 550/721  tracking 555/721  tracking 560/721  tracking 565/721  tracking 570/721  tracking 575/721  tracking 580/721  tracking 585/721  tracking 590/721  tracking 595/721  tracking 600/721  tracking 605/721  tracking 610/721  tracking 615/721  tracking 620/721  tracking 625/721  tracking 630/721  tracking 635/721  tracking 640/721  tracking 645/721  tracking 650/721  tracking 655/721  tracking 660/721  tracking 665/721  tracking 670/721  tracking 675/721  tracking 680/721  tracking 685/721  tracking 690/721  tracking 695/721  tracking 700/721  tracking 705/721  tracking 710/721  tracking 715/721  tracking 720/721[0;93m2026-11-02 19:47:21.680783213 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 19:47:21.680819630 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 19:47:21.680830315 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+I0000 00:00:1793620041.681566  263157 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793620041.722807  263605 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793620041.722850  263605 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793620041.773660  263607 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/root/autodl-tmp/spcx/.venv/lib/python3.12/site-packages/mediapipe/tasks/python/vision/image_segmenter.py:158: UserWarning: MessageFactory class is deprecated. Please use GetMessageClass() instead of MessageFactory.GetPrototype. MessageFactory class will be removed after 2024.
+  graph_config = self._runner.get_graph_config()
+[1;31m2026-11-02 19:47:21.936984619 [E:onnxruntime:Default, cudnn_fe_call.cc:33 CudaErrString<cudnn_frontend::error_object>] [cudnn_frontend] Error: No execution plans support the graph.[m
+W0000 00:00:1793620042.082311  263379 landmark_projection_calculator.cc:186] Using NORM_RECT without IMAGE_DIMENSIONS is only supported for the square ROI. Provide IMAGE_DIMENSIONS or use PROJECTION_MATRIX.
+
+  render 24/721  render 48/721  render 72/721  render 96/721  render 120/721  render 144/721  render 168/721  render 192/721[0;93m2026-11-02 19:48:10.203884476 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 19:48:10.203928893 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 19:48:10.203944123 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+I0000 00:00:1793620090.204837  263157 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793620090.248563  263738 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793620090.248604  263738 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793620090.299230  263739 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+  render 216/721  render 240/721  render 264/721  render 288/721  render 312/721  render 336/721  render 360/721  render 384/721  render 408/721  render 432/721  render 456/721  render 480/721  render 504/721  render 528/721  render 552/721  render 576/721  render 600/721  render 624/721  render 648/721  render 672/721  render 696/721  render 720/721
+{
+ "source": {
+  "width": 720,
+  "height": 1280,
+  "fps": 24.0,
+  "duration": 30.059,
+  "audio": true,
+  "bytes": 7956991
+ },
+ "run1_production": {
+  "product_mode": "clothing",
+  "strict": true,
+  "template": "mask-kf94-boat",
+  "frames_total": 721,
+  "frames_rendered": 721,
+  "stopped": null,
+  "tracked_frames": 667,
+  "guarded_frames": 0,
+  "guard_local": 0,
+  "guard_full": 0,
+  "detected_direct": 449,
+  "mouth_hidden_kept_original": 54,
+  "edge_exit_frames": 36,
+  "lip_check_moved_mask": 0,
+  "lip_still_exposed": 0,
+  "lip_restored_after_occlusion": 179,
+  "edge_grown_over_lips": 1,
+  "quality_counts": {
+   "direct": 245,
+   "edge_exit": 36,
+   "fan_mouth": 84,
+   "five_point": 3,
+   "flow": 216,
+   "mouth_hidden": 54,
+   "mouth_region": 80,
+   "refined": 1,
+   "reverse_flow": 2
+  },
+  "no_face_times": [],
+  "seconds": 253.7
+ }
+}
+done -> /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-kf94/mask-mask-kf94-boat.mp4 /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-kf94/compare.mp4
+$ /root/autodl-tmp/spcx-test/bin/ffmpeg -hide_banner -loglevel error -y -i /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-kf94/compare.mp4 -vf scale=720:-2 -c:v libx264 -crf 24 -preset fast -an /root/autodl-tmp/spcx-lab/results/007-mask-v7/v7-kf94/compare.mp4
+full-resolution output kept on server: /root/autodl-tmp/spcx-lab-work/007-mask-v7/v7-kf94
+== exit 0  2026-11-02 19:50:30
