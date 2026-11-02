@@ -25,6 +25,7 @@ prepare_test_tree(){   # $1 = base ref on origin of spcx (branch or commit)
   ln -sfn "$PROD/bin" bin
   git fetch -q origin || return 1
   git reset -q --hard "origin/$1" 2>/dev/null || git reset -q --hard "$1" || return 1
+  git clean -fdq -- app scripts tests deploy docs native vendor
 }
 
 run_job(){   # $1 = job json path (relative to LAB)
@@ -48,7 +49,7 @@ run_job(){   # $1 = job json path (relative to LAB)
 
 publish(){   # $1 = results id
   cd "$LAB" && git add "results/$1" && git commit -qm "result $1" && \
-    { git push -q || { git pull -q --rebase && git push -q; } ; } 2>>"$LOG" && log "pushed $1"
+    { git push -q origin HEAD:main || { git pull -q --rebase origin main && git push -q origin HEAD:main; } ; } 2>>"$LOG" && log "pushed $1"
 }
 
 run_cmd(){   # $1 = cmds/<id>.sh ; general shell, 30 min limit, output capped at 2 MB
@@ -61,16 +62,17 @@ run_cmd(){   # $1 = cmds/<id>.sh ; general shell, 30 min limit, output capped at
 
 log "runner started (pid $$)"
 while true; do
-  if cd "$LAB" && git pull -q --ff-only 2>>"$LOG"; then
+  if cd "$LAB" && git pull -q --ff-only origin main 2>>"$LOG"; then
+    if ! cmp -s "$LAB/runner.sh" /root/.spcx-lab-runner.sh; then log "runner updated, restarting"; cp "$LAB/runner.sh" /root/.spcx-lab-runner.sh; exec env SPCX_LAB_COPY=1 bash /root/.spcx-lab-runner.sh; fi
     for cmd in $(ls cmds/*.sh 2>/dev/null | sort); do
       id=$(basename "$cmd" .sh)
-      [ -f "results/$id/done" ] && continue
+      [ -f "$LAB/results/$id/done" ] && continue
       run_cmd "$cmd"; publish "$id"
     done
     for job in $(ls jobs/*.json 2>/dev/null | sort); do
       id=$(basename "$job" .json)
-      [ -f "results/$id/done" ] && continue
-      run_job "$job"; echo "$?" > "results/$id/done"; publish "$id"
+      [ -f "$LAB/results/$id/done" ] && continue
+      run_job "$job"; echo "$?" > "$LAB/results/$id/done"; publish "$id"
     done
   fi
   sleep "$INTERVAL"
