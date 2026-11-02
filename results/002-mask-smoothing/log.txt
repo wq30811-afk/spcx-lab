@@ -1,0 +1,82 @@
+== job 002-mask-smoothing  2026-11-02 19:27:30
+{
+ "base": "main",
+ "patches": [
+  "patches/fix-mask-keep-original-frames-when-no-mouth-is-vis.patch",
+  "patches/fix-mask-slide-the-wearable-out-at-frame-edges-so-.patch",
+  "patches/fix-mask-pixel-level-lip-check-keeps-the-wearable-.patch",
+  "patches/feat-mask-landmark-smoothing.patch"
+ ],
+ "steps": [
+  {
+   "kind": "pytest",
+   "tests": [
+    "tests/test_landmark_smooth.py",
+    "tests/test_lip_safety.py",
+    "tests/test_edge_exit.py",
+    "tests/test_mask_hidden_mouth.py"
+   ]
+  },
+  {
+   "kind": "mask",
+   "video": "/root/autodl-tmp/spcx-test/mask-test.mp4",
+   "template": "mask-toon-matte",
+   "product": "clothing",
+   "name": "v5-toon"
+  }
+ ]
+}
+== spcx-test at 1e6eed4 docs: record v25 dual-entry release and real export acceptance
+== apply patches/fix-mask-keep-original-frames-when-no-mouth-is-vis.patch
+== apply patches/fix-mask-slide-the-wearable-out-at-frame-edges-so-.patch
+== apply patches/fix-mask-pixel-level-lip-check-keeps-the-wearable-.patch
+== apply patches/feat-mask-landmark-smoothing.patch
+ M app/accessories.py
+ M app/face_flow_gaps.py
+ M app/mouth_region.py
+ M app/processing.py
+ M scripts/video_worker.py
+$ /root/autodl-tmp/spcx/.venv/bin/python -m pytest -q tests/test_landmark_smooth.py tests/test_lip_safety.py tests/test_edge_exit.py tests/test_mask_hidden_mouth.py
+...................                                                      [100%]
+19 passed in 0.16s
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/mask_test.py /root/autodl-tmp/spcx-test/mask-test.mp4 /root/autodl-tmp/spcx-lab-work/002-mask-smoothing/v5-toon --template mask-toon-matte --product clothing
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793618864.621184  256249 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793618864.693103  256382 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793618864.693688  256249 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+INFO: Created TensorFlow Lite delegate for GPU.
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+I0000 00:00:1793618865.693836  256249 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793618865.734448  256452 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793618865.734491  256452 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+I0000 00:00:1793618865.879078  256249 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793618865.914707  256505 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793618865.914750  256505 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+E0000 00:00:1793618866.180713  256382 tensor.cc:410] Tensors are designed for single writes. Multiple writes to a Tensor instance are not supported and may lead to undefined behavior due to lack of synchronization.
+prepare source
+run 1: production behaviour (clothing)
+  tracking 5/721  tracking 10/721  tracking 15/721  tracking 20/721  tracking 25/721  tracking 30/721  tracking 35/721  tracking 40/721  tracking 45/721  tracking 50/721  tracking 55/721  tracking 60/721  tracking 65/721  tracking 70/721  tracking 75/721  tracking 80/721  tracking 85/721  tracking 90/721  tracking 95/721  tracking 100/721  tracking 105/721  tracking 110/721  tracking 115/721  tracking 120/721  tracking 125/721  tracking 130/721  tracking 135/721  tracking 140/721  tracking 145/721  tracking 150/721  tracking 155/721  tracking 160/721  tracking 165/721  tracking 170/721  tracking 175/721  tracking 180/721  tracking 185/721  tracking 190/721I0000 00:00:1793618872.524155  256249 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793618872.564459  256569 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793618872.564501  256569 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793618872.564970  256249 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+W0000 00:00:1793618872.575823  256572 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1793618872.608374  256588 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+  tracking 195/721  tracking 200/721  tracking 205/721  tracking 210/721  tracking 215/721  tracking 220/721  tracking 225/721  tracking 230/721  tracking 235/721  tracking 240/721  tracking 245/721  tracking 250/721  tracking 255/721  tracking 260/721  tracking 265/721  tracking 270/721  tracking 275/721  tracking 280/721  tracking 285/721  tracking 290/721  tracking 295/721  tracking 300/721  tracking 305/721  tracking 310/721  tracking 315/721  tracking 320/721  tracking 325/721  tracking 330/721  tracking 335/721  tracking 340/721  tracking 345/721  tracking 350/721  tracking 355/721  tracking 360/721  tracking 365/721  tracking 370/721  tracking 375/721  tracking 380/721  tracking 385/721  tracking 390/721  tracking 395/721  tracking 400/721  tracking 405/721  tracking 410/721  tracking 415/721  tracking 420/721  tracking 425/721  tracking 430/721  tracking 435/721  tracking 440/721  tracking 445/721  tracking 450/721  tracking 455/721  tracking 460/721  tracking 465/721  tracking 470/721  tracking 475/721  tracking 480/721  tracking 485/721  tracking 490/721  tracking 495/721  tracking 500/721  tracking 505/721  tracking 510/721  tracking 515/721  tracking 520/721  tracking 525/721  tracking 530/721  tracking 535/721  tracking 540/721  tracking 545/721  tracking 550/721  tracking 555/721  tracking 560/721  tracking 565/721  tracking 570/721  tracking 575/721  tracking 580/721  tracking 585/721  tracking 590/721  tracking 595/721  tracking 600/721  tracking 605/721  tracking 610/721  tracking 615/721  tracking 620/721  tracking 625/721  tracking 630/721  tracking 635/721  tracking 640/721  tracking 645/721  tracking 650/721  tracking 655/721  tracking 660/721  tracking 665/721  tracking 670/721  tracking 675/721  tracking 680/721  tracking 685/721  tracking 690/721  tracking 695/721  tracking 700/721  tracking 705/721  tracking 710/721  tracking 715/721  tracking 720/721Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-lab/tools/mask_test.py", line 102, in <module>
+    main()
+  File "/root/autodl-tmp/spcx-lab/tools/mask_test.py", line 81, in main
+    s1 = render(staged, out / 'run1.mp4', a.template, a.product, a.product == 'clothing')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/autodl-tmp/spcx-lab/tools/mask_test.py", line 27, in render
+    effect.prepare(str(src), lambda i, n: print(f'\r  tracking {i}/{n}', end='', flush=True))
+  File "/root/autodl-tmp/spcx-test/app/processing.py", line 203, in prepare
+    self.cached=smooth(points,fps,cuts)
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/autodl-tmp/spcx-test/app/landmark_smooth.py", line 36, in smooth
+    run = np.stack([np.asarray(p, np.float32) for p in points[a:i]])
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/autodl-tmp/spcx/.venv/lib/python3.12/site-packages/numpy/core/shape_base.py", line 449, in stack
+    raise ValueError('all input arrays must have the same shape')
+ValueError: all input arrays must have the same shape
+full-resolution output kept on server: /root/autodl-tmp/spcx-lab-work/002-mask-smoothing/v5-toon
+== exit 1  2026-11-02 19:28:58
