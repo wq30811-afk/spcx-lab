@@ -1,4 +1,4 @@
-== job 001-mask-lip-safety  2026-11-02 19:04:12
+== job 001-mask-lip-safety  2026-11-02 19:04:54
 {
  "base": "main",
  "patches": [
@@ -27,6 +27,5 @@
 }
 == spcx-test at 1e6eed4 docs: record v25 dual-entry release and real export acceptance
 == apply patches/fix-mask-keep-original-frames-when-no-mouth-is-vis.patch
-== apply patches/fix-mask-slide-the-wearable-out-at-frame-edges-so-.patch
-error: tests/test_edge_exit.py: already exists in working directory
-APPLY FAILED: patches/fix-mask-slide-the-wearable-out-at-frame-edges-so-.patch
+error: tests/test_mask_hidden_mouth.py: already exists in working directory
+APPLY FAILED: patches/fix-mask-keep-original-frames-when-no-mouth-is-vis.patch
