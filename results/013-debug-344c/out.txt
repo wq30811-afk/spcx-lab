@@ -1,0 +1,52 @@
+start
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793625592.350975  317685 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793625592.404064  317713 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793625592.404601  317685 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+INFO: Created TensorFlow Lite delegate for GPU.
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+I0000 00:00:1793625593.335051  317685 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793625593.372757  317781 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793625593.372802  317781 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+I0000 00:00:1793625593.510427  317685 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793625593.547453  317834 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793625593.547495  317834 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+effect ready
+E0000 00:00:1793625593.824871  317713 tensor.cc:410] Tensors are designed for single writes. Multiple writes to a Tensor instance are not supported and may lead to undefined behavior due to lack of synchronization.
+I0000 00:00:1793625594.752887  317685 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793625594.791790  317892 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793625594.791834  317892 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793625594.792312  317685 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+W0000 00:00:1793625594.800223  317896 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1793625594.831988  317906 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+prepared
+[0;93m2026-11-02 21:19:58.730504299 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 21:19:58.730545765 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-02 21:19:58.730556856 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+I0000 00:00:1793625598.731228  317685 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+W0000 00:00:1793625598.771325  317983 gl_context.cc:360] Requested a context with major GL version 3 but context reports major version 4. Setting to 3.0
+I0000 00:00:1793625598.771367  317983 gl_context.cc:369] GL version: 3.0 (4.6.0 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793625598.822878  317985 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/root/autodl-tmp/spcx/.venv/lib/python3.12/site-packages/mediapipe/tasks/python/vision/image_segmenter.py:158: UserWarning: MessageFactory class is deprecated. Please use GetMessageClass() instead of MessageFactory.GetPrototype. MessageFactory class will be removed after 2024.
+  graph_config = self._runner.get_graph_config()
+W0000 00:00:1793625599.116552  317795 landmark_projection_calculator.cc:186] Using NORM_RECT without IMAGE_DIMENSIONS is only supported for the square ROI. Provide IMAGE_DIMENSIONS or use PROJECTION_MATRIX.
+[1;31m2026-11-02 21:20:04.677828473 [E:onnxruntime:Default, cudnn_fe_call.cc:33 CudaErrString<cudnn_frontend::error_object>] [cudnn_frontend] Error: No execution plans support the graph.[m
+330 direct raw_lips 1996 {'lm_mouth': [460.3999938964844, 220.10000610351562], 'lm_box': [[404.0, -32.0], [660.0, 302.0]], 'lips_after_reach': 1996, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 57600
+331 direct raw_lips 2100 {'lm_mouth': [466.20001220703125, 204.6999969482422], 'lm_box': [[406.0, -47.0], [663.0, 287.0]], 'lips_after_reach': 2100, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 57600
+332 direct raw_lips 2204 {'lm_mouth': [475.29998779296875, 185.60000610351562], 'lm_box': [[409.0, -68.0], [674.0, 270.0]], 'lips_after_reach': 2204, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 57568
+333 direct raw_lips 2208 {'lm_mouth': [479.6000061035156, 174.8000030517578], 'lm_box': [[412.0, -83.0], [679.0, 261.0]], 'lips_after_reach': 2208, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 56472
+334 mouth_region raw_lips 2123 {'lm_mouth': [489.6000061035156, 152.10000610351562], 'lm_box': [[387.0, -1.0], [576.0, 214.0]], 'lips_after_reach': 2123, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 57600
+335 mouth_region raw_lips 2283 {'lm_mouth': [494.1000061035156, 141.10000610351562], 'lm_box': [[386.0, -17.0], [581.0, 204.0]], 'lips_after_reach': 2283, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 57405
+336 mouth_region raw_lips 2586 {'lm_mouth': [502.1000061035156, 117.5], 'lm_box': [[391.0, -48.0], [595.0, 184.0]], 'lips_after_reach': 2586, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 54817
+337 mouth_region raw_lips 2647 {'lm_mouth': [507.3999938964844, 100.9000015258789], 'lm_box': [[393.0, -69.0], [602.0, 169.0]], 'lips_after_reach': 2647, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 52582
+338 mouth_region raw_lips 2672 {'lm_mouth': [512.0, 86.0999984741211], 'lm_box': [[402.0, -82.0], [608.0, 153.0]], 'lips_after_reach': 2672, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 50870
+339 mouth_region raw_lips 2766 {'lm_mouth': [516.7999877929688, 72.9000015258789], 'lm_box': [[403.0, -100.0], [615.0, 142.0]], 'lips_after_reach': 2766, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 48987
+340 mouth_region raw_lips 2631 {'lm_mouth': [525.4000244140625, 54.099998474121094], 'lm_box': [[410.0, -113.0], [616.0, 121.0]], 'lips_after_reach': 2631, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 48440
+341 mouth_region raw_lips 2612 {'lm_mouth': [531.0999755859375, 41.70000076293945], 'lm_box': [[410.0, -123.0], [617.0, 108.0]], 'lips_after_reach': 2612, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 48653
+342 mouth_region raw_lips 2758 {'lm_mouth': [534.4000244140625, 31.100000381469727], 'lm_box': [[411.0, -135.0], [620.0, 98.0]], 'lips_after_reach': 2758, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 49186
+343 mouth_region raw_lips 2686 {'lm_mouth': [539.2999877929688, 24.399999618530273], 'lm_box': [[433.0, -118.0], [613.0, 82.0]], 'lips_after_reach': 2686, 'uncovered_vs_alpha': 0} unchanged_px_in_top80rows 50712
+344 mouth_region raw_lips 0 {'lm_mouth': [539.0, 20.700000762939453], 'lm_box': [[497.0, -42.0], [574.0, 46.0]], 'lips_after_reach': None, 'uncovered_vs_alpha': None} unchanged_px_in_top80rows 55740
+345 flow raw_lips 0 {'lm_mouth': [542.0, 13.300000190734863], 'lm_box': [[509.0, -37.0], [571.0, 34.0]], 'lips_after_reach': None, 'uncovered_vs_alpha': None} unchanged_px_in_top80rows 56504
+346 flow raw_lips 0 {'lm_mouth': [544.7999877929688, 6.099999904632568], 'lm_box': [[514.0, -42.0], [573.0, 25.0]], 'lips_after_reach': None, 'uncovered_vs_alpha': None} unchanged_px_in_top80rows 56805
+347 flow raw_lips 0 {'lm_mouth': [547.2000122070312, -1.0], 'lm_box': [[516.0, -49.0], [575.0, 18.0]], 'lips_after_reach': None, 'uncovered_vs_alpha': None} unchanged_px_in_top80rows 57418
+348 edge_exit raw_lips 0 {'lm_mouth': [548.7999877929688, -5.199999809265137], 'lm_box': [[518.0, -53.0], [577.0, 14.0]], 'lips_after_reach': None, 'uncovered_vs_alpha': None} unchanged_px_in_top80rows 57270
