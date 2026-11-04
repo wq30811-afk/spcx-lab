@@ -47,6 +47,14 @@ def audit(step, out):
     return run([PY, LAB / 'tools/lip_audit.py', video, result, out / (step.get('job', '') + '-' + name).lstrip('-') / 'audit'])
 
 
+def language(step, out):
+    """Full language_video pipeline in spcx-test (own database)."""
+    args = [PY, LAB / 'tools/language_run.py', step['video'], out / step.get('name', 'language')]
+    for k, flag in (('face', '--face'), ('voice', '--voice'), ('lip', '--lip'), ('quality', '--quality'), ('requirement', '--requirement')):
+        if step.get(k): args += [flag, step[k]]
+    return run(args)
+
+
 def pytest(step, out):
     return run([PY, '-m', 'pytest', '-q', *step.get('tests', ['tests'])])
 
@@ -54,7 +62,7 @@ def pytest(step, out):
 def main():
     job = json.loads(Path(sys.argv[1]).read_text()); out = Path(sys.argv[2]); codes = []
     for step in job.get('steps', []):
-        fn = {'mask': mask, 'pytest': pytest, 'audit': audit}.get(step.get('kind'))
+        fn = {'mask': mask, 'pytest': pytest, 'audit': audit, 'language': language}.get(step.get('kind'))
         if fn is None: print('unknown step kind (not run):', step.get('kind')); codes.append(2); continue
         codes.append(fn(step, out))
     (out / 'summary.json').write_text(json.dumps({'step_exit_codes': codes}, indent=1))
