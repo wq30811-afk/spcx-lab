@@ -1,0 +1,10 @@
+{"video": "/root/autodl-tmp/spcx-test/work/jobs/00b7d07540c0430a93bf08a44a7aa036/language-source.mp4", "audio": "/root/autodl-tmp/spcx-test/work/jobs/00b7d07540c0430a93bf08a44a7aa036/thai-aligned.wav", "geometry": "/root/autodl-tmp/spcx-test/work/jobs/00b7d07540c0430a93bf08a44a7aa036/geometry.npz", "patches": "/root/autodl-tmp/spcx-test/work/jobs/00b7d07540c0430a93bf08a44a7aa036/mouth-patches.mp4", "output": "/root/autodl-tmp/spcx-test/work/jobs/00b7d07540c0430a93bf08a44a7aa036/geometry.npz"}
+aligned-faces.mp4 1502 25.0
+intermediate-02ba3dde45464d739162ceba202c73de.mp4 1502 25.0
+language-source.mp4 1502 25.0
+mouth-patches.mp4 1504 25.0
+thai-localized.mp4 1502 25.0
+14:def frame_count(path):
+167:  geometry_video=unswapped if face_done and frame_count(unswapped)==frame_count(video) else video
+168:  update(45,'定位嘴部、转头和前景遮挡');invoke('lips_prepare.py',dict(spec,video=str(geometry_video)))
+169:  geometry_source='original face (before swap)' if geometry_video!=video else 'final face'
