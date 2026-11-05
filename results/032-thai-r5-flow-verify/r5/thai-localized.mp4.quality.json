@@ -1,0 +1,33 @@
+{
+  "frames": 1502,
+  "localized_frames": 1502,
+  "unlocalized_frames": 0,
+  "mouth_outside_frames": 0,
+  "outside_mouth_preencode_changed_pixels": 0,
+  "whole_frame_generation": false,
+  "clothing_policy": "original pixels outside bounded mouth region before encoding",
+  "mouth_envelope": "speech opening aware v27",
+  "reverted_spike_frames": [
+    811,
+    812,
+    814,
+    815,
+    817
+  ],
+  "repaired_landmark_frames": [
+    17
+  ],
+  "composite": "face ROI with current-frame foreground protection",
+  "elapsed_seconds": 335.142,
+  "mean_roi_fraction": 0.06024,
+  "changed_mouth_frames": 1497,
+  "changed_mouth_pixels": 15710182,
+  "voiced_frames": 950,
+  "unchanged_voiced_frame_indices": [
+    811,
+    812,
+    814,
+    815,
+    817
+  ]
+}

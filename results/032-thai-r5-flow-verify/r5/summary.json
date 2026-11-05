@@ -1,0 +1,17 @@
+{
+ "exit": 0,
+ "status": "completed",
+ "message": "泰语 · 泰国视频已完成，请预览台词、声音、口型和服装后使用",
+ "seconds": 1809.2,
+ "options": {
+  "voice_mode": "standard",
+  "tts_model": "voicestudio-omnivoice",
+  "lip_model": "latentsync-1.6",
+  "quality": "high",
+  "face": true,
+  "requirement": "面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。",
+  "exchange_rate": 5.08
+ },
+ "quality": {},
+ "final": "/root/autodl-tmp/spcx-test/outputs/media/d49f839c9e324b0cad0836c581af70de.mp4"
+}
