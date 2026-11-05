@@ -1,0 +1,11 @@
+{'lip_geometry_source': None, 'mouth_size_spike_frames': [813, 814, 815, 816, 817], 'repaired_landmark_frames': [], 'unchanged_voiced_frame_indices': []}
+frames 1502
+out.full
+sheet-0.jpg
+sheet-1.jpg
+sheet-2.jpg
+sheet-3.jpg
+sheet-4.jpg
+sheet-5.jpg
+sheet-6.jpg
+sheet-7.jpg
