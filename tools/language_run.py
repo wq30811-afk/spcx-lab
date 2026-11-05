@@ -70,7 +70,7 @@ def main():
                'options': {k: cfg[k] for k in ('voice_mode', 'tts_model', 'lip_model', 'quality', 'face', 'requirement', 'exchange_rate') if k in cfg}}
     res = j.get('result') or {}
     summary['quality'] = {k: res.get(k) for k in ('lip_quality', 'voice_quality', 'quality') if res.get(k)}
-    for name in ('asr-raw.json', 'asr-raw-words.json', 'asr.json', 'translated.json', 'length-fit.json', 'voice-quality.json', 'thai-localized.mp4.quality.json', 'thai-aligned.wav.alignment.json'):
+    for name in ('asr-raw.json', 'asr-words.json', 'geometry-info.json', 'asr.json', 'translated.json', 'length-fit.json', 'voice-quality.json', 'thai-localized.mp4.quality.json', 'thai-aligned.wav.alignment.json'):
         if (work / name).is_file(): shutil.copyfile(work / name, out / name)
     final = TEST / 'outputs/media' / (jid + '.mp4')
     if final.is_file():

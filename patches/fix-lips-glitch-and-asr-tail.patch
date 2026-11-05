@@ -1,0 +1,230 @@
+From 2ea99a4825ac2f3b2251195a48aef943016a6c8d Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 5 Nov 2026 18:25:13 +0900
+Subject: [PATCH] fix(lips): repair single-frame landmark glitches before
+ LatentSync; guard patch spikes; ASR length cap and tail recovery
+
+- Fast hand motion gave 1-2 frames of wrong landmarks (18.8 s of the test clip); they drove
+  both the face alignment and the mouth envelope, pasting a twisted, oversized mouth. Frames
+  that jump in position/size against their neighbours are now re-estimated from good frames.
+- Compositor keeps the source mouth for a frame whose generated area suddenly exceeds 2.5x the
+  recent median (a misplaced patch rather than speech).
+- Merging short ASR pieces can no longer exceed the 9 s sentence cap; when word mode stops
+  early, the missing tail is taken from the segment-mode pass.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015XEHdEnhr7p5ae4FL4TjbE
+---
+ app/lip_temporal.py           | 52 +++++++++++++++++++++++++++++++++++
+ scripts/lips_align_faces.py   | 10 ++++++-
+ scripts/lips_composite_roi.py | 13 +++++++--
+ scripts/speech_infer.py       | 11 +++++++-
+ tests/test_lip_temporal.py    | 33 ++++++++++++++++++++++
+ tests/test_thai_timing.py     |  8 ++++++
+ 6 files changed, 122 insertions(+), 5 deletions(-)
+ create mode 100644 app/lip_temporal.py
+ create mode 100644 tests/test_lip_temporal.py
+
+diff --git a/app/lip_temporal.py b/app/lip_temporal.py
+new file mode 100644
+index 0000000..0af9722
+--- /dev/null
++++ b/app/lip_temporal.py
+@@ -0,0 +1,52 @@
++"""Temporal sanity for lip-sync geometry.
++
++Fast hand motion and motion blur occasionally give one or two frames of badly placed
++landmarks. Those frames drive both the face alignment (what LatentSync sees) and the mouth
++envelope (where the generated mouth is pasted), so the result is a twisted, oversized mouth
++for a flash. A real face cannot jump in position, size or angle for a single frame, so such
++frames are detected against their neighbours and re-estimated from the surrounding good frames.
++"""
++import numpy as np
++
++BROW_L = [70, 63, 105, 66, 107]; BROW_R = [336, 296, 334, 293, 300]; NOSE = 1
++
++
++def anchors(p):
++    """The three points the LatentSync alignment uses: left brow, right brow, nose tip."""
++    p = np.asarray(p, np.float64)
++    return np.array([p[BROW_L, :2].mean(0), p[BROW_R, :2].mean(0), p[NOSE, :2]])
++
++
++def outliers(landmarks, window=3, tolerance=.15):
++    """Frames whose alignment anchors deviate from the median of their neighbours by more than
++    `tolerance` of the face size (brow-to-brow distance), or whose size jumps by > 20%."""
++    q = np.stack([anchors(p) for p in landmarks]); n = len(q); bad = []
++    size = np.linalg.norm(q[:, 0] - q[:, 1], axis=1)
++    for i in range(n):
++        # Symmetric neighbourhoods only: their median is unbiased for steady motion, and
++        # robust to a second glitch frame among the neighbours.
++        if i < window or i >= n - window: continue
++        nb = [j for j in range(i - window, i + window + 1) if j != i]
++        ref = np.median(q[nb], axis=0); ref_size = float(np.median(size[nb])) or 1.0
++        dev = float(np.linalg.norm(q[i] - ref, axis=1).max()) / ref_size
++        if dev > tolerance or not .8 <= size[i] / ref_size <= 1.25: bad.append(i)
++    return bad
++
++
++def repair(landmarks, max_gap=6, **kw):
++    """Return (landmarks, repaired indices). Outlier frames are linearly interpolated between
++    the nearest good frames on both sides (at most `max_gap` frames away); if only one side
++    exists the nearest good frame is copied. Frames without a close good neighbour are kept."""
++    lm = np.array(landmarks, np.float32, copy=True); bad = set(outliers(lm, **kw)); fixed = []
++    good = [i for i in range(len(lm)) if i not in bad]
++    for i in sorted(bad):
++        left = max((g for g in good if g < i), default=None); right = min((g for g in good if g > i), default=None)
++        if left is not None and i - left > max_gap: left = None
++        if right is not None and right - i > max_gap: right = None
++        if left is None and right is None: continue
++        if left is None: lm[i] = lm[right]
++        elif right is None: lm[i] = lm[left]
++        else:
++            t = (i - left) / (right - left); lm[i] = lm[left] * (1 - t) + lm[right] * t
++        fixed.append(i)
++    return lm, fixed
+diff --git a/scripts/lips_align_faces.py b/scripts/lips_align_faces.py
+index 87f7cf2..1dc0f80 100644
+--- a/scripts/lips_align_faces.py
++++ b/scripts/lips_align_faces.py
+@@ -2,7 +2,15 @@
+ from pathlib import Path
+ import sys,os,json,subprocess,cv2,numpy as np
+ r=Path(os.environ['SPCX_ROOT']);sys.path.insert(0,str(r));from app.lip_alignment import face_alignment
+-s=json.loads(Path(sys.argv[1]).read_text());g=np.load(s['geometry']);cap=cv2.VideoCapture(s['video']);fps=float(g['fps']);affines=[];count=0
++s=json.loads(Path(sys.argv[1]).read_text());g=np.load(s['geometry'])
++# Re-estimate single-frame landmark glitches (fast hands, motion blur) before they drive the
++# alignment and the mouth envelope; the repaired geometry is what the compositor reads too.
++from app.lip_temporal import repair
++fixed_landmarks,repaired=repair(g['landmarks'])
++if repaired:
++ data={k:g[k] for k in g.files};data['landmarks']=fixed_landmarks;data['repaired_frames']=np.array(repaired,np.int32);np.savez_compressed(s['geometry'],**data);g=np.load(s['geometry'])
++print('LANDMARK_REPAIRED',len(repaired),repaired[:40],flush=True)
++cap=cv2.VideoCapture(s['video']);fps=float(g['fps']);affines=[];count=0
+ writer=subprocess.Popen([str(r/'bin/ffmpeg'),'-v','error','-y','-f','rawvideo','-pix_fmt','bgr24','-s','512x512','-r',str(fps),'-i','pipe:0','-an','-c:v','libx264','-preset','fast','-crf','8','-pix_fmt','yuv420p',s['aligned_video']],stdin=subprocess.PIPE)
+ # Same three-point similarity geometry as upstream AlignRestore, then canonical resize.
+ try:
+diff --git a/scripts/lips_composite_roi.py b/scripts/lips_composite_roi.py
+index c6da117..2420e14 100644
+--- a/scripts/lips_composite_roi.py
++++ b/scripts/lips_composite_roi.py
+@@ -7,7 +7,7 @@ from app.vision_runtime import Hands
+ from app.lip_roi import compose_roi
+ s=json.loads(Path(sys.argv[1]).read_text());g=np.load(s['geometry']);matrices=np.load(s['affines'])['matrices'];fps=float(g['fps']);w=int(g['width']);h=int(g['height']);expected=len(g['landmarks'])
+ if len(matrices)<expected or not np.all((g['boxes'][:,2]>g['boxes'][:,0])&(g['boxes'][:,3]>g['boxes'][:,1])):raise ValueError('当前片段嘴部定位不完整')
+-source=cv2.VideoCapture(s['video']);patches=cv2.VideoCapture(s['patches']);occlusion=FaceOcclusion();hands=Hands();start=time.monotonic();count=0;roi_pixels=0;changed_frames=0;changed_pixels=0;voiced_frames=0;unchanged_voiced=[]
++source=cv2.VideoCapture(s['video']);patches=cv2.VideoCapture(s['patches']);occlusion=FaceOcclusion();hands=Hands();start=time.monotonic();count=0;import collections;recent=collections.deque(maxlen=15);reverted=[];roi_pixels=0;changed_frames=0;changed_pixels=0;voiced_frames=0;unchanged_voiced=[]
+ import wave
+ with wave.open(s['audio']) as wav:
+  audio_rate=wav.getframerate();audio=np.frombuffer(wav.readframes(wav.getnframes()),np.int16).astype(np.float32)/32768
+@@ -19,7 +19,14 @@ try:
+   if not ok or not ok2:raise ValueError('原片或口型补片帧数不足')
+   result=hands.process(cv2.cvtColor(frame,cv2.COLOR_BGR2RGB));hand_points=[np.array([(v.x*w,v.y*h) for v in hand.landmark],np.float32) for hand in result.multi_hand_landmarks or []]
+   out,allowed,box=compose_roi(frame,patch,points,matrix,occlusion,hand_points)
+-  changed=int(np.count_nonzero(np.any(out[allowed]!=frame[allowed],axis=1)));changed_frames+=int(changed>0);changed_pixels+=changed
++  changed=int(np.count_nonzero(np.any(out[allowed]!=frame[allowed],axis=1)))
++  # Last guard: a generated mouth suddenly covering far more than in the recent frames is a
++  # misplaced patch, not speech. Keep the (face-swapped) source mouth for that frame instead.
++  base=float(np.median(recent)) if len(recent)>=5 else 0.
++  if base>50 and changed>base*2.5:
++   out=frame.copy();reverted.append(count);changed=0
++  else:recent.append(changed)
++  changed_frames+=int(changed>0);changed_pixels+=changed
+   part=audio[round(count*audio_rate/fps):round((count+1)*audio_rate/fps)];voiced=bool(len(part) and float(np.sqrt(np.mean(part**2)))>.006);voiced_frames+=int(voiced)
+   if voiced and not changed:unchanged_voiced.append(count)
+   roi_pixels+=(box[2]-box[0])*(box[3]-box[1]);writer.stdin.write(out.tobytes());count+=1
+@@ -32,6 +39,6 @@ try:
+ finally:
+  source.release();patches.release();occlusion.close();hands.close();writer.stdin.close();code=writer.wait();log.close()
+ if code or count!=expected:raise ValueError('局部合成未完整完成')
+-quality={'frames':count,'localized_frames':count,'unlocalized_frames':0,'mouth_outside_frames':0,'outside_mouth_preencode_changed_pixels':0,'whole_frame_generation':False,'clothing_policy':'original pixels outside bounded mouth region before encoding','mouth_envelope':'speech opening aware v27','composite':'face ROI with current-frame foreground protection','elapsed_seconds':round(time.monotonic()-start,3),'mean_roi_fraction':round(roi_pixels/max(1,count*w*h),5),'changed_mouth_frames':changed_frames,'changed_mouth_pixels':changed_pixels,'voiced_frames':voiced_frames,'unchanged_voiced_frame_indices':unchanged_voiced}
++quality={'frames':count,'localized_frames':count,'unlocalized_frames':0,'mouth_outside_frames':0,'outside_mouth_preencode_changed_pixels':0,'whole_frame_generation':False,'clothing_policy':'original pixels outside bounded mouth region before encoding','mouth_envelope':'speech opening aware v27','reverted_spike_frames':reverted,'repaired_landmark_frames':[int(x) for x in g['repaired_frames']] if 'repaired_frames' in g.files else [],'composite':'face ROI with current-frame foreground protection','elapsed_seconds':round(time.monotonic()-start,3),'mean_roi_fraction':round(roi_pixels/max(1,count*w*h),5),'changed_mouth_frames':changed_frames,'changed_mouth_pixels':changed_pixels,'voiced_frames':voiced_frames,'unchanged_voiced_frame_indices':unchanged_voiced}
+ if voiced_frames>=5 and len(unchanged_voiced)==voiced_frames:raise ValueError('所有有声帧均未合成嘴部，拒绝作为对口型结果')
+ Path(s['output']+'.quality.json').write_text(json.dumps(quality,ensure_ascii=False,indent=2));print(json.dumps(quality),flush=True)
+diff --git a/scripts/speech_infer.py b/scripts/speech_infer.py
+index 9f905e6..87f5cd6 100644
+--- a/scripts/speech_infer.py
++++ b/scripts/speech_infer.py
+@@ -21,6 +21,14 @@ def asr(spec):
+   # batch_size>1 breaks word alignment in transformers' chunked mode (IndexError on the 5090 runs).
+   words=model({'raw':audio,'sampling_rate':sr},return_timestamps='word',generate_kwargs=generate,batch_size=1)
+   result=sentences_from_words(words,len(audio)/sr)
++  # Word mode sometimes stops early (seen: nothing after 46 s of a 60 s clip). Recover the
++  # missing tail from the segment-mode pass so later speech is never silently dropped.
++  last=result['chunks'][-1]['timestamp'][1] if result['chunks'] else 0.
++  if len(audio)/sr-last>3:
++   seg=model({'raw':audio,'sampling_rate':sr},return_timestamps=True,generate_kwargs=generate,batch_size=1)
++   tail=[c for c in seg.get('chunks') or [] if c.get('timestamp') and c['timestamp'][0] is not None and c['timestamp'][0]>=last-.2 and str(c.get('text','')).strip()]
++   result['chunks']+=[{'text':str(c['text']).strip(),'timestamp':[round(max(last,float(c['timestamp'][0])),3),round(float(c['timestamp'][1] if c['timestamp'][1] is not None else len(audio)/sr),3)]} for c in tail]
++   result['text']=''.join(c['text'] for c in result['chunks']);result['tail_from_segments']=len(tail)
+   Path(spec['output']).with_name(Path(spec['output']).stem+'-words.json').write_text(json.dumps(words,ensure_ascii=False,indent=1))
+  except Exception as e:
+   print('word timestamps unavailable, segment timestamps used:',repr(e)[:300],flush=True)
+@@ -44,7 +52,8 @@ def sentences_from_words(words,duration,pause=.4,soft=6.,hard=9.,min_len=1.):
+   else:g.append(b)
+  merged=[]
+  for g in groups:
+-  if merged and (g[-1][1]-g[0][0]<min_len or merged[-1][-1][1]-merged[-1][0][0]<min_len) and g[0][0]-merged[-1][-1][1]<.3:merged[-1]+=g
++  # Merge a tiny piece into a close neighbour, but never past the hard sentence length.
++  if merged and (g[-1][1]-g[0][0]<min_len or merged[-1][-1][1]-merged[-1][0][0]<min_len) and g[0][0]-merged[-1][-1][1]<.3 and g[-1][1]-merged[-1][0][0]<=hard:merged[-1]+=g
+   else:merged.append(g)
+  chunks=[{'text':''.join(x[2] for x in g).strip().lstrip(',，?？!！。、;； '),'timestamp':[round(g[0][0],3),round(min(duration,g[-1][1]),3)]} for g in merged]
+  return {'text':''.join(c['text'] for c in chunks),'chunks':chunks,'segmentation':'word-pauses'}
+diff --git a/tests/test_lip_temporal.py b/tests/test_lip_temporal.py
+new file mode 100644
+index 0000000..a685031
+--- /dev/null
++++ b/tests/test_lip_temporal.py
+@@ -0,0 +1,33 @@
++import numpy as np
++from app.lip_temporal import repair, outliers, BROW_L, BROW_R, NOSE
++
++
++def face(cx, cy, size=100.0, angle=0.0):
++    """478 points; brows and nose placed for a face centred at (cx, cy)."""
++    p = np.zeros((478, 3), np.float32); c, s = np.cos(angle), np.sin(angle)
++    def put(idx, dx, dy):
++        p[idx, 0] = cx + (dx * c - dy * s) * size; p[idx, 1] = cy + (dx * s + dy * c) * size
++    put(list(range(478)), 0, 0); put(BROW_L, -.5, -.4); put(BROW_R, .5, -.4); put([NOSE], 0, .1)
++    return p
++
++
++def test_single_frame_glitch_is_repaired_from_neighbours():
++    track = [face(300 + 2 * i, 400) for i in range(12)]
++    track[6] = face(330, 440, size=150, angle=.5)          # one twisted, oversized frame
++    fixed, idx = repair(track)
++    assert idx == [6]
++    assert np.allclose(fixed[6][BROW_L, 0].mean(), (track[5][BROW_L, 0].mean() + track[7][BROW_L, 0].mean()) / 2, atol=1)
++
++
++def test_two_frame_glitch_like_the_duplicated_25fps_frames():
++    track = [face(300, 400) for _ in range(12)]
++    track[6] = track[7] = face(300, 450, size=140, angle=.4)
++    fixed, idx = repair(track)
++    assert idx == [6, 7] and np.allclose(fixed[6], track[5], atol=1e-3)
++
++
++def test_smooth_fast_motion_is_not_touched():
++    track = [face(200 + 12 * i, 400 + 3 * i, size=100 + i) for i in range(20)]   # quick but continuous
++    assert outliers(track) == []
++    fixed, idx = repair(track)
++    assert idx == [] and np.allclose(fixed, np.array(track))
+diff --git a/tests/test_thai_timing.py b/tests/test_thai_timing.py
+index d6e430d..0eac6ff 100644
+--- a/tests/test_thai_timing.py
++++ b/tests/test_thai_timing.py
+@@ -69,3 +69,11 @@ def test_real_word_chunks_from_the_5090_run_regroup_cleanly():
+     out = speech_infer.sentences_from_words(words(seq), 34)
+     assert all(not c['text'][0] in ',?，？' for c in out['chunks'])
+     assert max(c['timestamp'][1] - c['timestamp'][0] for c in out['chunks']) <= 9.5
++
++
++def test_merging_tiny_pieces_never_exceeds_the_hard_limit():
++    seq = []; t = 0.0
++    for k in range(40):                     # many 0.8 s fragments separated by 0.45 s pauses
++        seq.append(('字字', t, t + .8)); t += 1.25
++    out = speech_infer.sentences_from_words(words(seq), t)
++    assert max(c['timestamp'][1] - c['timestamp'][0] for c in out['chunks']) <= 9.0
+-- 
+2.43.0
+
