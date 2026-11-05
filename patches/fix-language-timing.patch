@@ -1,0 +1,293 @@
+From 2032587689f14ddc2ac2df1e8107956ac83a6788 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 5 Nov 2026 16:28:53 +0900
+Subject: [PATCH] fix(language): natural sentence timing, length-budgeted
+ translation, refit of long speech, exchange rate
+
+- ASR: Whisper word timestamps regrouped into sentences at pauses (max ~9 s); segment
+  timestamps had collapsed into one 46 s block plus fixed 2 s windows on live-stream audio.
+- Translation: each sentence carries its seconds and a max character budget; optional
+  exchange_rate converts RMB prices (e.g. 1:5.08) instead of the fixed 'never convert' rule.
+- Speech that still overruns its slot is re-worded shorter and spoken again (2 rounds)
+  instead of failing alignment; alignment may use the silence before the next sentence.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015XEHdEnhr7p5ae4FL4TjbE
+---
+ app/language_api.py              |  1 +
+ app/language_core.py             | 23 ++++++++++--
+ scripts/language_video_worker.py | 34 ++++++++++++++++--
+ scripts/speech_align.py          |  2 +-
+ scripts/speech_infer.py          | 33 ++++++++++++++++-
+ scripts/speech_translate.py      | 13 ++++---
+ tests/test_thai_timing.py        | 61 ++++++++++++++++++++++++++++++++
+ 7 files changed, 156 insertions(+), 11 deletions(-)
+ create mode 100644 tests/test_thai_timing.py
+
+diff --git a/app/language_api.py b/app/language_api.py
+index b4e95e3..492b40f 100644
+--- a/app/language_api.py
++++ b/app/language_api.py
+@@ -22,6 +22,7 @@ class LanguageJob(BaseModel):
+  allow_text_upload:bool=True
+  allow_audio_upload:bool=False
+  requirement:str=Field('',max_length=2000)
++ exchange_rate:float|None=Field(None,gt=0,le=1000)
+  asr_hint:str=Field('',max_length=1000)
+  transcript_corrections:str=Field('',max_length=2000)
+  lip_sync:bool=True
+diff --git a/app/language_core.py b/app/language_core.py
+index 8aeadeb..3e79875 100644
+--- a/app/language_core.py
++++ b/app/language_core.py
+@@ -35,14 +35,31 @@ def segments_from_asr(result,duration):
+  if not rows:raise ValueError('未识别到可用人声，请检查是否有音轨或更换识别模型')
+  return rows
+ 
+-def translation_prompt(rows,requirement='',product_type='clothing',target='th'):
++CHARS_PER_SECOND={'th':13}
++
++def budget(row,target='th'):
++ """Readable characters that fit the sentence's own time slot at a natural pace."""
++ seconds=max(.5,float(row['end'])-float(row['start']));return max(6,round(seconds*CHARS_PER_SECOND.get(target,13)))
++
++def price_rule(rate=None):
++ if rate:return '所有人民币价格一律按1人民币='+str(rate)+'泰铢换算成泰铢，四舍五入到个位后只说泰铢（例如99元说成'+str(round(99*float(rate)))+'泰铢），不得再出现人民币、元或换算过程；'
++ return '人民币不得擅自改为泰铢，不进行未经设置的汇率换算；'
++
++def translation_prompt(rows,requirement='',product_type='clothing',target='th',rate=None):
+  from .language_catalog import LANGUAGES
+  language=LANGUAGES[target]
+  target_rules=('泰语译文必须使用泰文；品牌英文和尺码英文标记可以保留，中文品牌需转写为可朗读的泰文。说话口吻未明确时，自然省略性别主语和性别尾词，不擅自添加ผม、ครับ或ค่ะ；用户明确口吻时按其要求。' if target=='th' else '')
+  return ('将以下视频口播翻译为标准、自然的'+language+'，用于朗读。只返回JSON {"segments":[{"id":0,"text":"译文"}]}，每个输入id必须恰好出现一次，不新增id，不合并。'
+  '完整翻译每一句，不能只翻译开头后原样粘贴原文。'+target_rules+
+- '保留所有阿拉伯数字、价格、币种、尺码英文标记、品牌和商品事实；人民币不得擅自改为泰铢，不进行未经设置的汇率换算；不得增加销量、功效或促销承诺。语气自然，尽量适合原句时长，禁止解释、标题、音效。'
+- +'产品类型：'+product_type+'。用户风格要求：'+requirement+'。输入：'+json.dumps(rows,ensure_ascii=False))
++ '保留所有阿拉伯数字、价格、币种、尺码英文标记、品牌和商品事实；'+price_rule(rate)+'不得增加销量、功效或促销承诺。语气自然，禁止解释、标题、音效。'
++ '每句都有朗读时长：译文字符数不得超过该句max_chars（按正常语速可读完）；超出时精简措辞、省略口头重复，但保留数字、价格和商品事实。'
++ +'产品类型：'+product_type+'。用户风格要求：'+requirement+'。输入：'+json.dumps([{'id':r['id'],'source':r['source'],'seconds':round(float(r['end'])-float(r['start']),2),'max_chars':budget(r,target)} for r in rows],ensure_ascii=False))
++
++def shorten_prompt(rows,target='th'):
++ """rows: id, source, text, max_chars. Ask for shorter readings of the same meaning."""
++ from .language_catalog import LANGUAGES
++ return ('以下'+LANGUAGES[target]+'译文朗读时太长，放不进原句时长。请在不改变意思的前提下改写得更短：每句字符数不得超过max_chars，保留数字、价格和商品事实，可省略语气词和重复。'
++ '只返回JSON {"segments":[{"id":0,"text":"更短的译文"}]}，每个输入id恰好出现一次。输入：'+json.dumps(rows,ensure_ascii=False))
+ 
+ def translated_segments(rows,text,target='th'):
+  match=re.search(r'\{.*\}',text,re.S)
+diff --git a/scripts/language_video_worker.py b/scripts/language_video_worker.py
+index 4285602..88e0428 100644
+--- a/scripts/language_video_worker.py
++++ b/scripts/language_video_worker.py
+@@ -3,7 +3,7 @@ from pathlib import Path
+ import os,sys,json,subprocess,traceback,shutil,uuid
+ ROOT=Path(os.environ.get('SPCX_ROOT',Path(__file__).resolve().parents[1]));sys.path.insert(0,str(ROOT))
+ from app import store
+-from app.config import local_env,FFMPEG
++from app.config import local_env,FFMPEG,FFPROBE
+ from app.video import prepare,probe,validate_source
+ from app.language_core import segments_from_asr,correct_transcript
+ from app.language_catalog import NATIVE_CLONE_MODELS
+@@ -67,7 +67,7 @@ try:
+   raw_asr=json.loads(asr.read_text());(work/'asr-raw.json').write_text(json.dumps(raw_asr,ensure_ascii=False,indent=2));corrected,correction_audit=correct_transcript(raw_asr,c.get('transcript_corrections',''));asr.write_text(json.dumps(corrected,ensure_ascii=False,indent=2));(work/'correction-audit.json').write_text(json.dumps(correction_audit,ensure_ascii=False))
+   rows=segments_from_asr(corrected,duration)
+   update(19,'翻译为'+target_name+'并检查数字、价格与分句')
+-  invoke('speech_translate.py',{'asr':str(asr),'duration':duration,'output':str(translated),'requirement':c['requirement'],'product_type':c['product_type'],'provider':c['translation_provider'],'target_language':target},'ai' if c['translation_provider']=='local' else 'core')
++  invoke('speech_translate.py',{'asr':str(asr),'duration':duration,'output':str(translated),'requirement':c['requirement'],'product_type':c['product_type'],'provider':c['translation_provider'],'target_language':target,'exchange_rate':c.get('exchange_rate')},'ai' if c['translation_provider']=='local' else 'core')
+   rows=json.loads(translated.read_text())
+   if c.get('review_script'):
+    c['_review_started_at']=__import__('time').time()
+@@ -109,6 +109,36 @@ try:
+   update(38,'本地提取原片人物音色，转换朗读音色')
+   proof=work/'voice-quality.json';tone={'strength':c['voice_strength'],'posterior_noise':0} if 'voice_strength' in c else {}
+   invoke('speech_voice.py',{'reference':str(reference),'segments':segments,'output':str(proof),**tone},'speech');voice_quality.update(json.loads(proof.read_text()))
++ def synth(subset):
++  s2={**spec,'segments':subset}
++  if model=='moss-tts-v1.5':invoke('speech_moss.py',s2,'moss')
++  elif model=='voicestudio-omnivoice':invoke('speech_omnivoice.py',s2,'omni')
++  elif not external:invoke('speech_infer.py',s2,'speech')
++  else:invoke('speech_external.py',s2)
++  if c.get('voice_mode','original')=='original' and model not in NATIVE_CLONE_MODELS:
++   tone={'strength':c['voice_strength'],'posterior_noise':0} if 'voice_strength' in c else {}
++   invoke('speech_voice.py',{'reference':str(reference),'segments':subset,'output':str(work/'voice-quality-refit.json'),**tone},'speech')
++ def seconds(path):
++  r=subprocess.run([FFPROBE,'-v','error','-show_entries','format=duration','-of','csv=p=0',str(path)],capture_output=True,text=True,check=True);return float(r.stdout.strip())
++ # Speech that does not fit its slot (up to the next sentence) is re-worded shorter and
++ # spoken again, instead of failing or being sped up past a natural pace.
++ fit_log=[]
++ for attempt in range(2):
++  long=[]
++  for i,(row,seg) in enumerate(zip(rows,segments)):
++   window=max(.3,(rows[i+1]['start'] if i+1<len(rows) else duration)-row['start']);spoken=seconds(seg['output'])
++   if spoken>window*1.25:long.append((i,spoken,window))
++  if not long:break
++  update(40,'缩写'+str(len(long))+'句过长的'+target_name+'译文并重新朗读')
++  ask=[{'id':rows[i]['id'],'source':rows[i].get('source',''),'text':rows[i]['text'],'max_chars':max(4,int(len(rows[i]['text'])*window*1.15/spoken))} for i,spoken,window in long]
++  short=work/('shorten-'+str(attempt)+'.json')
++  invoke('speech_translate.py',{'mode':'shorten','rows':ask,'output':str(short),'provider':c['translation_provider'],'target_language':target},'ai' if c['translation_provider']=='local' else 'core')
++  new={r['id']:r['text'] for r in json.loads(short.read_text())}
++  for i,spoken,window in long:
++   fit_log.append({'attempt':attempt,'id':rows[i]['id'],'seconds':round(spoken,2),'slot':round(window,2),'before':rows[i]['text'],'after':new[rows[i]['id']]})
++   rows[i]['text']=segments[i]['text']=new[rows[i]['id']]
++  synth([segments[i] for i,_,_ in long])
++ (work/'length-fit.json').write_text(json.dumps(fit_log,ensure_ascii=False,indent=1));translated.write_text(json.dumps(rows,ensure_ascii=False,indent=2))
+  aligned=work/'thai-aligned.wav'
+  for row,seg in zip(rows,segments):row['audio']=seg['output']
+  invoke('speech_align.py',{'segments':rows,'duration':duration,'output':str(aligned),'max_speed':1.8})
+diff --git a/scripts/speech_align.py b/scripts/speech_align.py
+index 6942c4a..499cbed 100644
+--- a/scripts/speech_align.py
++++ b/scripts/speech_align.py
+@@ -3,7 +3,7 @@ from pathlib import Path
+ import os,sys,json,subprocess,wave,numpy as np
+ ROOT=Path(os.environ.get('SPCX_ROOT',Path(__file__).resolve().parents[1]));spec=json.loads(Path(sys.argv[1]).read_text());rate=24000;out=np.zeros(round(spec['duration']*rate),np.int16);proof=[]
+ for i,row in enumerate(spec['segments']):
+- path=Path(row['audio']);temporary=path.with_name(path.stem+'-fit.wav');r=subprocess.run([str(ROOT/'bin/ffprobe'),'-v','error','-show_entries','format=duration','-of','json',str(path)],capture_output=True,text=True,check=True);duration=float(json.loads(r.stdout)['format']['duration']);window=row['end']-row['start'];speed=max(1,duration/window)
++ path=Path(row['audio']);temporary=path.with_name(path.stem+'-fit.wav');r=subprocess.run([str(ROOT/'bin/ffprobe'),'-v','error','-show_entries','format=duration','-of','json',str(path)],capture_output=True,text=True,check=True);duration=float(json.loads(r.stdout)['format']['duration']);nxt=spec['segments'][i+1]['start'] if i+1<len(spec['segments']) else spec['duration'];window=max(row['end'],nxt)-row['start'];speed=max(1,duration/window)
+  if speed>spec.get('max_speed',1.8):raise ValueError('第'+str(i+1)+'句泰语过长，请缩短译文后重试；没有截断台词或改变服装画面')
+  subprocess.run([str(ROOT/'bin/ffmpeg'),'-v','error','-y','-i',str(path),'-af','atempo='+str(speed),'-ac','1','-ar',str(rate),'-c:a','pcm_s16le',str(temporary)],check=True)
+  with wave.open(str(temporary)) as w:assert w.getsampwidth()==2 and w.getnchannels()==1;raw=np.frombuffer(w.readframes(w.getnframes()),np.int16)
+diff --git a/scripts/speech_infer.py b/scripts/speech_infer.py
+index fded8e6..6b8577a 100644
+--- a/scripts/speech_infer.py
++++ b/scripts/speech_infer.py
+@@ -14,9 +14,40 @@ def asr(spec):
+  model.model.generation_config.forced_decoder_ids=None
+  generate={'task':'transcribe'}
+  if spec.get('hint'):generate['prompt_ids']=model.tokenizer.get_prompt_ids(spec['hint'][:1000],return_tensors='pt').to('cuda')
+- result=model({'raw':audio,'sampling_rate':sr},return_timestamps=True,generate_kwargs=generate,batch_size=4)
++ try:
++  # Segment-level timestamps collapse on continuous live-stream speech with music (seen: one
++  # 46 s "sentence" followed by fixed 2 s windows). Word timestamps are re-grouped into
++  # natural sentences at pauses instead; the old segment mode stays as the fallback.
++  words=model({'raw':audio,'sampling_rate':sr},return_timestamps='word',generate_kwargs=generate,batch_size=4)
++  result=sentences_from_words(words,len(audio)/sr)
++  Path(spec['output']).with_name(Path(spec['output']).stem+'-words.json').write_text(json.dumps(words,ensure_ascii=False,indent=1))
++ except Exception as e:
++  print('word timestamps unavailable, segment timestamps used:',repr(e)[:300],flush=True)
++  result=model({'raw':audio,'sampling_rate':sr},return_timestamps=True,generate_kwargs=generate,batch_size=4)
+  Path(spec['output']).write_text(json.dumps(result,ensure_ascii=False,indent=2));return result
+ 
++def sentences_from_words(words,duration,pause=.4,soft=6.,hard=9.,min_len=1.):
++ """Group word timestamps into sentences: break at pauses >= `pause` s, at sentence
++ punctuation once 2 s long, at smaller pauses once `soft` s long, and always by `hard` s.
++ Very short pieces are merged into a close neighbour."""
++ items=[]
++ for w in words.get('chunks') or []:
++  t=w.get('timestamp') or (None,None);text=str(w.get('text',''))
++  if t[0] is None or not text.strip():continue
++  items.append((float(t[0]),float(t[1] if t[1] is not None else t[0]+.2),text))
++ if not items:raise ValueError('no word timestamps')
++ groups=[[items[0]]]
++ for a,b in zip(items,items[1:]):
++  g=groups[-1];length=a[1]-g[0][0];gap=b[0]-a[1]
++  if gap>=pause or length>=hard or (length>=2 and a[2].strip()[-1:] in '。！？!?.') or (length>=soft and gap>=.12):groups.append([b])
++  else:g.append(b)
++ merged=[]
++ for g in groups:
++  if merged and (g[-1][1]-g[0][0]<min_len or merged[-1][-1][1]-merged[-1][0][0]<min_len) and g[0][0]-merged[-1][-1][1]<.3:merged[-1]+=g
++  else:merged.append(g)
++ chunks=[{'text':''.join(x[2] for x in g).strip(),'timestamp':[round(g[0][0],3),round(min(duration,g[-1][1]),3)]} for g in merged]
++ return {'text':''.join(c['text'] for c in chunks),'chunks':chunks,'segmentation':'word-pauses'}
++
+ def thai_tts(spec):
+  from flowtts.load_flowtts import FlowTTS
+  from flowtts.inference import FlowTTSPipeline,ModelConfig,AudioConfig
+diff --git a/scripts/speech_translate.py b/scripts/speech_translate.py
+index e075ff7..0aeb8b1 100644
+--- a/scripts/speech_translate.py
++++ b/scripts/speech_translate.py
+@@ -2,14 +2,19 @@
+ from pathlib import Path
+ import os,sys,json
+ ROOT=Path(os.environ.get('SPCX_ROOT',Path(__file__).resolve().parents[1]));sys.path.insert(0,str(ROOT));sys.path.insert(0,str(ROOT/'scripts'))
+-from app.language_core import segments_from_asr,translation_prompt,translated_segments
++from app.language_core import segments_from_asr,translation_prompt,translated_segments,shorten_prompt
+ from app import providers
+ import cloud_ai
+-spec=json.loads(Path(sys.argv[1]).read_text());rows=segments_from_asr(json.loads(Path(spec['asr']).read_text()),spec['duration']);cfg=providers.read().get(spec.get('provider','deepseek'),{})
+-body={'model':cfg.get('model',''),'messages':[{'role':'user','content':translation_prompt(rows,spec.get('requirement',''),spec.get('product_type','clothing'),spec.get('target_language','th'))}],'max_tokens':4000,'temperature':.2,'thinking':{'type':'disabled'},'response_format':{'type':'json_object'},'stream':False}
++spec=json.loads(Path(sys.argv[1]).read_text());cfg=providers.read().get(spec.get('provider','deepseek'),{});target=spec.get('target_language','th')
++if spec.get('mode')=='shorten':
++ # Re-word only the sentences whose speech did not fit; rows carry id, source, text, max_chars.
++ rows=spec['rows'];prompt=shorten_prompt(rows,target)
++else:
++ rows=segments_from_asr(json.loads(Path(spec['asr']).read_text()),spec['duration']);prompt=translation_prompt(rows,spec.get('requirement',''),spec.get('product_type','clothing'),target,spec.get('exchange_rate'))
++body={'model':cfg.get('model',''),'messages':[{'role':'user','content':prompt}],'max_tokens':4000,'temperature':.2,'thinking':{'type':'disabled'},'response_format':{'type':'json_object'},'stream':False}
+ if spec.get('provider','deepseek')=='local':
+  from app.local_ai import ask
+- text=ask(translation_prompt(rows,spec.get('requirement',''),spec.get('product_type','clothing'),spec.get('target_language','th')),None,4000)
++ text=ask(prompt,None,4000)
+ else:
+  result=cloud_ai.call(spec.get('provider','deepseek'),'/chat/completions',json=body);text=result['choices'][0]['message']['content']
+ translated=translated_segments(rows,text,spec.get('target_language','th'));Path(spec['output']).write_text(json.dumps(translated,ensure_ascii=False,indent=2));print('THAI_TRANSLATION_VALIDATED',len(translated))
+diff --git a/tests/test_thai_timing.py b/tests/test_thai_timing.py
+new file mode 100644
+index 0000000..7e954d5
+--- /dev/null
++++ b/tests/test_thai_timing.py
+@@ -0,0 +1,61 @@
++import importlib.util, json, subprocess, sys, wave
++from pathlib import Path
++import numpy as np
++from app.language_core import translation_prompt, shorten_prompt, budget, price_rule, segments_from_asr
++
++ROOT = Path(__file__).resolve().parents[1]
++spec = importlib.util.spec_from_file_location('speech_infer', ROOT / 'scripts/speech_infer.py')
++speech_infer = importlib.util.module_from_spec(spec); spec.loader.exec_module(speech_infer)
++
++
++def words(seq):
++    return {'chunks': [{'text': t, 'timestamp': [s, e]} for t, s, e in seq]}
++
++
++def test_long_continuous_speech_is_split_at_pauses_not_one_46s_block():
++    seq = []; t = 0.0
++    for k in range(120):                       # 120 characters, a 0.6 s pause every 15
++        seq.append(('字', t, t + .25)); t += .3
++        if k % 15 == 14: t += .6
++    out = speech_infer.sentences_from_words(words(seq), t)
++    lens = [c['timestamp'][1] - c['timestamp'][0] for c in out['chunks']]
++    assert len(out['chunks']) == 8 and max(lens) < 9 and out['segmentation'] == 'word-pauses'
++    assert ''.join(c['text'] for c in out['chunks']) == '字' * 120
++
++
++def test_no_pause_is_still_cut_by_the_hard_limit():
++    seq = [('字', i * .3, i * .3 + .28) for i in range(100)]       # 30 s without any pause
++    out = speech_infer.sentences_from_words(words(seq), 30)
++    assert max(c['timestamp'][1] - c['timestamp'][0] for c in out['chunks']) <= 9.5
++
++
++def test_tiny_fragments_merge_with_a_close_neighbour():
++    seq = [('黑', 0, .2), ('色', .2, .4), ('T', .4, .6), ('你', 1.1, 1.3), ('等', 1.3, 1.5), ('一', 1.5, 1.7), ('下', 1.7, 2.6)]
++    out = speech_infer.sentences_from_words(words(seq), 3)
++    assert len(out['chunks']) == 2      # the 0.5 s pause still separates them, each >= 0.6 s
++
++
++def test_prompt_carries_time_budget_and_exchange_rate():
++    rows = [{'id': 0, 'start': 0, 'end': 2.0, 'source': '这件99元'}]
++    p = translation_prompt(rows, target='th', rate=5.08)
++    data = json.loads(p[p.rindex('输入：') + 3:])
++    assert data[0]['max_chars'] == budget(rows[0]) == 26 and data[0]['seconds'] == 2.0
++    assert '5.08泰铢' in p and '503泰铢' in p and '人民币不得擅自改为泰铢' not in p
++    assert '人民币不得擅自改为泰铢' in translation_prompt(rows, target='th')   # unchanged without a rate
++    assert 'max_chars' in shorten_prompt([{'id': 0, 'source': 'x', 'text': 'ยาว', 'max_chars': 8}])
++
++
++def test_alignment_may_use_the_silence_before_the_next_sentence(tmp_path):
++    def tone(path, sec):
++        with wave.open(str(path), 'wb') as w:
++            w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(np.zeros(int(24000 * sec), np.int16).tobytes())
++    a, b = tmp_path / 'a.wav', tmp_path / 'b.wav'; tone(a, 2.6); tone(b, 1.0)
++    rows = [{'id': 0, 'start': 0, 'end': 1.5, 'audio': str(a)}, {'id': 1, 'start': 3.0, 'end': 4.0, 'audio': str(b)}]
++    spec_file = tmp_path / 'spec.json'; out = tmp_path / 'out.wav'
++    spec_file.write_text(json.dumps({'segments': rows, 'duration': 5.0, 'output': str(out), 'max_speed': 1.8}))
++    r = subprocess.run([sys.executable, str(ROOT / 'scripts/speech_align.py'), str(spec_file)], capture_output=True, text=True,
++                       env={'SPCX_ROOT': str(ROOT), 'PATH': '/usr/bin:/bin'})
++    if 'No such file' in r.stderr and 'bin/ffprobe' in r.stderr: return     # local dev without bundled ffmpeg
++    assert r.returncode == 0, r.stderr[-500:]
++    proof = json.loads(Path(str(out) + '.alignment.json').read_text())
++    assert proof[0]['speed'] == 1.0          # 2.6 s fits before the next sentence at 3.0 s, no speed-up
+-- 
+2.43.0
+
