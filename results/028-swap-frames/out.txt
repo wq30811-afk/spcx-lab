@@ -1,0 +1,17 @@
+-rw-r--r--  1 root root 31304707 Nov  5 17:31 aligned-faces.mp4
+-rw-r--r--  1 root root    70059 Nov  5 17:31 face-affines.npz
+-rw-r--r--  1 root root   164801 Nov  5 17:29 facefusion.log
+-rw-r--r--  1 root root  7654210 Nov  5 17:31 geometry.npz
+-rw-r--r--  1 root root 40386602 Nov  5 17:29 intermediate-bbbebd5f13c84241b9f6c76bb001b414.mp4
+-rw-r--r--  1 root root 57847287 Nov  5 17:26 language-source.mp4
+-rw-r--r--  1 root root  8001808 Nov  5 17:49 mouth-patches.mp4
+-rw-r--r--  1 root root        0 Nov  5 17:49 thai-localized.encoder.log
+-rw-r--r--  1 root root 50857890 Nov  5 17:54 thai-localized.mp4
+-rw-r--r--  1 root root     5515 Nov  5 17:54 thai-localized.mp4.quality.json
+intermediate: /root/autodl-tmp/spcx-test/work/jobs/5b3aa8214ff0421095d7dcb1762e3992/intermediate-bbbebd5f13c84241b9f6c76bb001b414.mp4
+/root/autodl-tmp/spcx-test/work/jobs/5b3aa8214ff0421095d7dcb1762e3992/facefusion.log:[FACEFUSION.CORE] processing step 1 of 1
+/root/autodl-tmp/spcx-test/work/jobs/5b3aa8214ff0421095d7dcb1762e3992/facefusion.log:[FACEFUSION.TO_VIDEO] restoring audio skipped
+/root/autodl-tmp/spcx-test/work/jobs/5b3aa8214ff0421095d7dcb1762e3992/facefusion.log:[FACEFUSION.TO_VIDEO] processing to video succeeded in 90.39 seconds
+5b3aa8214ff042.jpg
+intermediate-b.jpg
+out.full
