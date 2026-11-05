@@ -1,0 +1,11 @@
+{'lip_geometry_source': None, 'mouth_size_spike_frames': [477, 478, 479, 480, 481, 482, 483, 484, 813, 814, 815, 816, 817, 818, 1441], 'repaired_landmark_frames': [17, 150, 207, 208, 373, 375, 377, 380, 382, 384, 394, 402, 410, 418, 423, 427, 441, 472, 475, 481, 482, 501, 502, 506, 507, 597, 599, 613, 614, 713, 716, 717, 718, 1088, 1165, 1300, 1306, 1307, 1308, 1314], 'unchanged_voiced_frame_indices': [364]}
+frames 1502
+out.full
+sheet-0.jpg
+sheet-1.jpg
+sheet-2.jpg
+sheet-3.jpg
+sheet-4.jpg
+sheet-5.jpg
+sheet-6.jpg
+sheet-7.jpg
