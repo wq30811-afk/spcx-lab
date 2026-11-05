@@ -1,0 +1,58 @@
+From 35e2edf0898322641ee365f4d672c06eca229c0a Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 5 Nov 2026 20:19:23 +0900
+Subject: [PATCH] fix(lips): track one face; the two-people guard uses its own
+ detector every 12th frame
+
+num_faces=2 in VIDEO mode misplaced the face ~100 px for runs of frames on the live clip.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015XEHdEnhr7p5ae4FL4TjbE
+---
+ scripts/lips_prepare.py | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/scripts/lips_prepare.py b/scripts/lips_prepare.py
+index 4e04451..1f649f4 100644
+--- a/scripts/lips_prepare.py
++++ b/scripts/lips_prepare.py
+@@ -7,16 +7,22 @@ from app.face_flow import follow
+ import mediapipe as mp
+ from mediapipe.tasks.python import vision
+ spec=json.loads(Path(sys.argv[1]).read_text());cap=cv2.VideoCapture(spec['video']);fps=cap.get(cv2.CAP_PROP_FPS);w=int(cap.get(3));h=int(cap.get(4));rows=[];boxes=[];refiner=None;mouth_refiner=None;previous_frame=None;previous_points=None;flow_frames=0;outside_frames=0;fan_refiner=None;fan_frames=0;last_valid_frame=None;last_valid_points=None;last_valid_index=-100
+-mesh=vision.FaceLandmarker.create_from_options(vision.FaceLandmarkerOptions(base_options=base_options('face_landmarker.task',False),running_mode=vision.RunningMode.VIDEO,num_faces=2,min_face_detection_confidence=.35,min_face_presence_confidence=.35))
++# Tracking uses one face: asking the VIDEO tracker for two faces changes its tracking and was
++# measured to misplace the face by ~100 px (eyes on the cheeks) for several frames after a hand
++# passes. The several-people guard runs on its own, a fresh detection on every 12th frame.
++mesh=vision.FaceLandmarker.create_from_options(vision.FaceLandmarkerOptions(base_options=base_options('face_landmarker.task',False),running_mode=vision.RunningMode.VIDEO,num_faces=1,min_face_detection_confidence=.35,min_face_presence_confidence=.35))
++people=vision.FaceLandmarker.create_from_options(vision.FaceLandmarkerOptions(base_options=base_options('face_landmarker.task',False),running_mode=vision.RunningMode.IMAGE,num_faces=2,min_face_detection_confidence=.35,min_face_presence_confidence=.35))
+ try:
+  while True:
+   ok,frame=cap.read()
+   if not ok:break
+-  r=mesh.detect_for_video(mp.Image(image_format=mp.ImageFormat.SRGB,data=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)),round(len(rows)*1000/fps))
++  image=mp.Image(image_format=mp.ImageFormat.SRGB,data=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB))
++  r=mesh.detect_for_video(image,round(len(rows)*1000/fps))
+   faces=[np.array([(p.x*w,p.y*h,p.z*w) for p in face],np.float32) for face in r.face_landmarks]
+-  faces.sort(key=lambda a:float(np.ptp(a[:,0])*np.ptp(a[:,1])),reverse=True)
+-  if len(faces)>1:
+-   a,b=faces[:2];lo=np.maximum(a[:,:2].min(0),b[:,:2].min(0));hi=np.minimum(a[:,:2].max(0),b[:,:2].max(0));intersection=float(np.maximum(0,hi-lo).prod());area_a=float(np.ptp(a[:,0])*np.ptp(a[:,1]));area_b=float(np.ptp(b[:,0])*np.ptp(b[:,1]))
++  others=[np.array([(p.x*w,p.y*h,p.z*w) for p in face],np.float32) for face in people.detect(image).face_landmarks] if len(rows)%12==0 else []
++  others.sort(key=lambda a:float(np.ptp(a[:,0])*np.ptp(a[:,1])),reverse=True)
++  if len(others)>1:
++   a,b=others[:2];lo=np.maximum(a[:,:2].min(0),b[:,:2].min(0));hi=np.minimum(a[:,:2].max(0),b[:,:2].max(0));intersection=float(np.maximum(0,hi-lo).prod());area_a=float(np.ptp(a[:,0])*np.ptp(a[:,1]));area_b=float(np.ptp(b[:,0])*np.ptp(b[:,1]))
+    if area_b>area_a*.4 and intersection/max(1,area_a+area_b-intersection)<.25:raise ValueError("检测到多个大小接近的人脸，请先裁剪或指定目标人物")
+   lm=faces[0] if faces else None
+   if lm is None or min(lm[33,1],lm[263,1])<0:
+@@ -55,7 +61,7 @@ try:
+   # A face crop ends at the chin. It never includes a garment or the neck.
+   x1=max(-w//2,int(lm[:468,0].min()));x2=min(w+w//2,int(lm[:468,0].max())+1);y2=min(h,int(lm[152,1])+1);eye_y=float((lm[33,1]+lm[263,1])/2);y1=max(-h//2,int(eye_y-(y2-eye_y)*.45));boxes.append((x1,y1,x2,y2))
+   points=np.full((478,3),np.nan,np.float32);points[:min(478,len(lm))]=lm[:478];rows.append(points)
+-finally:cap.release();mesh.close()
++finally:cap.release();mesh.close();people.close()
+ # Recover bounded gaps with reverse current-frame flow, especially the opening
+ # frames before the first detector lock. No interpolation or frozen pixels.
+ reverse_frames=0;back=cv2.VideoCapture(spec['video']);seed_index=None;seed_frame=None;seed_points=None;distance=0
+-- 
+2.43.0
+
