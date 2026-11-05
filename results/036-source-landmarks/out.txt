@@ -1,0 +1,6 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+language-source.mp4 25.0 1502 1080 1906
+intermediate-0df795c7ac2f4cc988332170523ec7fa.mp4 25.0 1502 1080 1906
+frames 1502 missed 0
+nose y 466-485 source: [588.0, 599.0, 611.0, 626.0, 641.0, 643.0, 653.0, 658.0, 659.0, 659.0, 656.0, 652.0, 647.0, 647.0, 634.0, 620.0, 606.0, 589.0, 576.0, 571.0]
