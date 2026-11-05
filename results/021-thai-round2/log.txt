@@ -1,0 +1,74 @@
+== job 021-thai-round2  2026-11-05 15:29:07
+{
+ "base": "main",
+ "patches": [
+  "patches/fix-language-timing.patch"
+ ],
+ "steps": [
+  {
+   "kind": "pytest",
+   "tests": [
+    "tests/test_thai_timing.py",
+    "tests/test_language_core.py",
+    "tests/test_language_review.py"
+   ]
+  },
+  {
+   "kind": "language",
+   "video": "/root/autodl-tmp/spcx-test/thai-test-60s.mp4",
+   "face": "/root/autodl-tmp/spcx-lab/results/018-ai-faces/face-2-seed23.jpg",
+   "voice": "standard",
+   "requirement": "面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。",
+   "rate": 5.08,
+   "lip": "musetalk",
+   "quality": "quick",
+   "tts": "thai-f5",
+   "name": "r2-musetalk-thaif5"
+  },
+  {
+   "kind": "language",
+   "video": "/root/autodl-tmp/spcx-test/thai-test-60s.mp4",
+   "face": "/root/autodl-tmp/spcx-lab/results/018-ai-faces/face-2-seed23.jpg",
+   "voice": "standard",
+   "requirement": "面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。",
+   "rate": 5.08,
+   "lip": "latentsync-1.6",
+   "quality": "high",
+   "tts": "thai-f5",
+   "name": "r2-latentsync-thaif5"
+  },
+  {
+   "kind": "language",
+   "video": "/root/autodl-tmp/spcx-test/thai-test-60s.mp4",
+   "face": "/root/autodl-tmp/spcx-lab/results/018-ai-faces/face-2-seed23.jpg",
+   "voice": "standard",
+   "requirement": "面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。",
+   "rate": 5.08,
+   "lip": "musetalk",
+   "quality": "quick",
+   "tts": "voicestudio-omnivoice",
+   "name": "r2-musetalk-omnivoice"
+  }
+ ]
+}
+== spcx-test at 2b308cc docs: 记录150帧5秒实际成片核验及原背景回流改善，尚未部署
+== apply patches/fix-language-timing.patch
+ M app/language_api.py
+ M app/language_core.py
+ M scripts/language_video_worker.py
+ M scripts/speech_align.py
+ M scripts/speech_infer.py
+ M scripts/speech_translate.py
+$ /root/autodl-tmp/spcx/.venv/bin/python -m pytest -q tests/test_thai_timing.py tests/test_language_core.py tests/test_language_review.py
+...............                                                          [100%]
+15 passed in 0.84s
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/language_run.py /root/autodl-tmp/spcx-test/thai-test-60s.mp4 /root/autodl-tmp/spcx-lab/results/021-thai-round2/r2-musetalk-thaif5 --face /root/autodl-tmp/spcx-lab/results/018-ai-faces/face-2-seed23.jpg --voice standard --lip musetalk --quality quick --requirement 面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。 --rate 5.08 --tts thai-f5
+job d9659bee033e4023beae087e92f42936
+{"exit": 0, "status": "failed", "message": "语言转换未完成：换脸未完成。详情：Traceback (most recent call last):\n  File \"/root/autodl-tmp/spcx-test/scripts/face_runner.py\", line 8, in <module>\n    from facefusion import download\nModuleNotFoundError: No module named 'facefusion'\n", "seconds": 812.9, "options": {"voice_mode": "standard", "tts_model": "thai-f5", "lip_model": "musetalk", "quality": "quick", "face": true, "requirement": "面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。", "exchange_rate": 5.08}, "quality": {}}
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/language_run.py /root/autodl-tmp/spcx-test/thai-test-60s.mp4 /root/autodl-tmp/spcx-lab/results/021-thai-round2/r2-latentsync-thaif5 --face /root/autodl-tmp/spcx-lab/results/018-ai-faces/face-2-seed23.jpg --voice standard --lip latentsync-1.6 --quality high --requirement 面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。 --rate 5.08 --tts thai-f5
+job c2b4901a3aae42efacc2f11f130c859b
+{"exit": 0, "status": "failed", "message": "语言转换未完成：换脸未完成。详情：Traceback (most recent call last):\n  File \"/root/autodl-tmp/spcx-test/scripts/face_runner.py\", line 8, in <module>\n    from facefusion import download\nModuleNotFoundError: No module named 'facefusion'\n", "seconds": 1622.9, "options": {"voice_mode": "standard", "tts_model": "thai-f5", "lip_model": "latentsync-1.6", "quality": "high", "face": true, "requirement": "面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。", "exchange_rate": 5.08}, "quality": {}}
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/language_run.py /root/autodl-tmp/spcx-test/thai-test-60s.mp4 /root/autodl-tmp/spcx-lab/results/021-thai-round2/r2-musetalk-omnivoice --face /root/autodl-tmp/spcx-lab/results/018-ai-faces/face-2-seed23.jpg --voice standard --lip musetalk --quality quick --requirement 面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。 --rate 5.08 --tts voicestudio-omnivoice
+job 2840d983b03c4c50b65fbba6d588b403
+{"exit": 0, "status": "failed", "message": "语言转换未完成：换脸未完成。详情：Traceback (most recent call last):\n  File \"/root/autodl-tmp/spcx-test/scripts/face_runner.py\", line 8, in <module>\n    from facefusion import download\nModuleNotFoundError: No module named 'facefusion'\n", "seconds": 798.0, "options": {"voice_mode": "standard", "tts_model": "voicestudio-omnivoice", "lip_model": "musetalk", "quality": "quick", "face": true, "requirement": "面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。", "exchange_rate": 5.08}, "quality": {}}
+== exit 1  2026-11-05 16:23:10

@@ -1,0 +1,165 @@
+Device set to use cuda:0
+/root/autodl-tmp/spcx/.ai-env/lib/python3.12/site-packages/transformers/models/whisper/generation_whisper.py:573: FutureWarning: The input name `inputs` is deprecated. Please make sure to use `input_features` instead.
+  warnings.warn(
+You have passed task=transcribe, but also have set `forced_decoder_ids` to [[1, None], [2, 50360]] which creates a conflict. `forced_decoder_ids` will be ignored in favor of task=transcribe.
+WhisperModel is using WhisperSdpaAttention, but `torch.nn.functional.scaled_dot_product_attention` does not support `output_attentions=True` or `layer_head_mask` not None. Falling back to the manual attention implementation, but specifying the manual implementation will be required from Transformers version v5.0.0 onwards. This warning can be removed using the argument `attn_implementation="eager"` when loading the model.
+word timestamps unavailable, segment timestamps used: IndexError('index 0 is out of bounds for axis 0 with size 0')
+{"ok": true, "stage": "asr"}
+THAI_TRANSLATION_VALIDATED 8
+Loading weights:   0%|          | 0/313 [00:00<?, ?it/s]Loading weights:   1%|▏         | 4/313 [00:00<00:28, 10.99it/s]Loading weights:   8%|▊         | 24/313 [00:00<00:04, 61.22it/s]Loading weights:  15%|█▌        | 48/313 [00:00<00:02, 109.12it/s]Loading weights:  24%|██▎       | 74/313 [00:00<00:01, 149.24it/s]Loading weights:  32%|███▏      | 101/313 [00:00<00:01, 180.89it/s]Loading weights:  42%|████▏     | 130/313 [00:00<00:00, 209.84it/s]Loading weights:  50%|████▉     | 156/313 [00:01<00:00, 224.13it/s]Loading weights:  58%|█████▊    | 181/313 [00:01<00:00, 220.53it/s]Loading weights:  65%|██████▌   | 205/313 [00:01<00:00, 213.28it/s]Loading weights:  75%|███████▌  | 236/313 [00:01<00:00, 235.88it/s]Loading weights:  84%|████████▎ | 262/313 [00:01<00:00, 237.48it/s]Loading weights:  92%|█████████▏| 287/313 [00:01<00:00, 240.05it/s]Loading weights: 100%|██████████| 313/313 [00:01<00:00, 190.74it/s]
+Loading weights:   0%|          | 0/527 [00:00<?, ?it/s]Loading weights:  31%|███▏      | 166/527 [00:00<00:00, 1623.41it/s]Loading weights:  62%|██████▏   | 329/527 [00:00<00:00, 445.88it/s] Loading weights:  79%|███████▊  | 414/527 [00:00<00:00, 432.84it/s]Loading weights:  91%|█████████ | 479/527 [00:01<00:00, 440.14it/s]Loading weights: 100%|██████████| 527/527 [00:01<00:00, 463.87it/s]
+{"ok": true, "engine": "VoiceStudio · OmniVoice"}
+THAI_TRANSLATION_VALIDATED 2
+Loading weights:   0%|          | 0/313 [00:00<?, ?it/s]Loading weights:  23%|██▎       | 73/313 [00:00<00:00, 723.35it/s]Loading weights:  71%|███████   | 221/313 [00:00<00:00, 1164.26it/s]Loading weights: 100%|██████████| 313/313 [00:00<00:00, 1155.34it/s]
+Loading weights:   0%|          | 0/527 [00:00<?, ?it/s]Loading weights:  43%|████▎     | 225/527 [00:00<00:00, 2211.46it/s]Loading weights:  85%|████████▍ | 447/527 [00:00<00:00, 1929.52it/s]Loading weights: 100%|██████████| 527/527 [00:00<00:00, 1897.55it/s]
+{"ok": true, "engine": "VoiceStudio · OmniVoice"}
+THAI_ALIGNED 60.091
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793866272.046691  421438 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793866272.104969  421483 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793866272.105596  421438 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1793866272.141732  421493 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1793866272.163377  421503 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+I0000 00:00:1793866334.756902  421438 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793866334.799582  421622 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793866334.800177  421438 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+W0000 00:00:1793866334.809662  421623 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1793866334.837728  421636 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+{"frames": 1322, "localized": 1322, "fps": 22.0, "flow_frames": 38}
+An error occurred while trying to fetch /root/autodl-tmp/spcx-test/models/speech/sd-vae: Error no file named diffusion_pytorch_model.safetensors found in directory /root/autodl-tmp/spcx-test/models/speech/sd-vae.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+LIPS_GENERATED 32 1322
+LIPS_GENERATED 64 1322
+LIPS_GENERATED 96 1322
+LIPS_GENERATED 128 1322
+LIPS_GENERATED 160 1322
+LIPS_GENERATED 192 1322
+LIPS_GENERATED 224 1322
+LIPS_GENERATED 256 1322
+LIPS_GENERATED 288 1322
+LIPS_GENERATED 320 1322
+LIPS_GENERATED 352 1322
+LIPS_GENERATED 384 1322
+LIPS_GENERATED 416 1322
+LIPS_GENERATED 448 1322
+LIPS_GENERATED 480 1322
+LIPS_GENERATED 512 1322
+LIPS_GENERATED 544 1322
+LIPS_GENERATED 576 1322
+LIPS_GENERATED 608 1322
+LIPS_GENERATED 640 1322
+LIPS_GENERATED 672 1322
+LIPS_GENERATED 704 1322
+LIPS_GENERATED 736 1322
+LIPS_GENERATED 768 1322
+LIPS_GENERATED 800 1322
+LIPS_GENERATED 832 1322
+LIPS_GENERATED 864 1322
+LIPS_GENERATED 896 1322
+LIPS_GENERATED 928 1322
+LIPS_GENERATED 960 1322
+LIPS_GENERATED 992 1322
+LIPS_GENERATED 1024 1322
+LIPS_GENERATED 1056 1322
+LIPS_GENERATED 1088 1322
+LIPS_GENERATED 1120 1322
+LIPS_GENERATED 1152 1322
+LIPS_GENERATED 1184 1322
+LIPS_GENERATED 1216 1322
+LIPS_GENERATED 1248 1322
+LIPS_GENERATED 1280 1322
+LIPS_GENERATED 1312 1322
+LIPS_PATCHES_COMPLETE 1322
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793866402.074515  421909 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793866402.128367  421975 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+INFO: Created TensorFlow Lite delegate for GPU.
+[0;93m2026-11-05 16:13:23.351226135 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-05 16:13:23.351261171 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-05 16:13:23.351271258 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+I0000 00:00:1793866403.351849  421909 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793866403.387894  422057 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1793866403.440779  422058 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/root/autodl-tmp/spcx-test/.venv/lib/python3.12/site-packages/mediapipe/tasks/python/vision/image_segmenter.py:158: UserWarning: MessageFactory class is deprecated. Please use GetMessageClass() instead of MessageFactory.GetPrototype. MessageFactory class will be removed after 2024.
+  graph_config = self._runner.get_graph_config()
+[1;31m2026-11-05 16:13:23.611799973 [E:onnxruntime:Default, cudnn_fe_call.cc:33 CudaErrString<cudnn_frontend::error_object>] [cudnn_frontend] Error: No execution plans support the graph.[m
+E0000 00:00:1793866403.881363  421975 tensor.cc:410] Tensors are designed for single writes. Multiple writes to a Tensor instance are not supported and may lead to undefined behavior due to lack of synchronization.
+W0000 00:00:1793866403.900505  421992 landmark_projection_calculator.cc:186] Using NORM_RECT without IMAGE_DIMENSIONS is only supported for the square ROI. Provide IMAGE_DIMENSIONS or use PROJECTION_MATRIX.
+LIPS_COMPOSITED 30 1322
+LIPS_COMPOSITED 60 1322
+LIPS_COMPOSITED 90 1322
+LIPS_COMPOSITED 120 1322
+LIPS_COMPOSITED 150 1322
+LIPS_COMPOSITED 180 1322
+LIPS_COMPOSITED 210 1322
+LIPS_COMPOSITED 240 1322
+LIPS_COMPOSITED 270 1322
+LIPS_COMPOSITED 300 1322
+LIPS_COMPOSITED 330 1322
+LIPS_COMPOSITED 360 1322
+LIPS_COMPOSITED 390 1322
+LIPS_COMPOSITED 420 1322
+LIPS_COMPOSITED 450 1322
+LIPS_COMPOSITED 480 1322
+LIPS_COMPOSITED 510 1322
+LIPS_COMPOSITED 540 1322
+LIPS_COMPOSITED 570 1322
+LIPS_COMPOSITED 600 1322
+LIPS_COMPOSITED 630 1322
+LIPS_COMPOSITED 660 1322
+LIPS_COMPOSITED 690 1322
+LIPS_COMPOSITED 720 1322
+LIPS_COMPOSITED 750 1322
+LIPS_COMPOSITED 780 1322
+LIPS_COMPOSITED 810 1322
+LIPS_COMPOSITED 840 1322
+LIPS_COMPOSITED 870 1322
+LIPS_COMPOSITED 900 1322
+LIPS_COMPOSITED 930 1322
+LIPS_COMPOSITED 960 1322
+LIPS_COMPOSITED 990 1322
+LIPS_COMPOSITED 1020 1322
+LIPS_COMPOSITED 1050 1322
+LIPS_COMPOSITED 1080 1322
+LIPS_COMPOSITED 1110 1322
+LIPS_COMPOSITED 1140 1322
+LIPS_COMPOSITED 1170 1322
+LIPS_COMPOSITED 1200 1322
+LIPS_COMPOSITED 1230 1322
+LIPS_COMPOSITED 1260 1322
+LIPS_COMPOSITED 1290 1322
+LIPS_COMPOSITED 1320 1322
+LIPS_COMPOSITE_COMPLETE 1322 1322
+Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/video_worker.py", line 23, in <module>
+    out,face_checks=swap_video(id,c,current,work)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/autodl-tmp/spcx-test/app/face_video.py", line 42, in swap_video
+    if proc.returncode or not out.exists():raise RuntimeError('换脸未完成。详情：'+logfile.read_text(errors='replace')[-1400:])
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: 换脸未完成。详情：Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/face_runner.py", line 8, in <module>
+    from facefusion import download
+ModuleNotFoundError: No module named 'facefusion'
+
+Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/smart_stage.py", line 38, in <module>
+    raise RuntimeError(failure[-1])
+RuntimeError: 换脸未完成。详情：Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/face_runner.py", line 8, in <module>
+    from facefusion import download
+ModuleNotFoundError: No module named 'facefusion'
+
+Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/language_video_worker.py", line 178, in <module>
+    optional=video_stage(current,93,5);current=optional['asset'];quality['optional_video']={k:v for k,v in optional.items() if k not in ('asset','meta')}
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/autodl-tmp/spcx-test/scripts/language_video_worker.py", line 39, in video_stage
+    raise ValueError(detail or '可选换脸、背景或遮挡阶段未完成')
+ValueError: 换脸未完成。详情：Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/face_runner.py", line 8, in <module>
+    from facefusion import download
+ModuleNotFoundError: No module named 'facefusion'
+

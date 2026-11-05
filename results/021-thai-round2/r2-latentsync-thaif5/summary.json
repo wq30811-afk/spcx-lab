@@ -1,0 +1,16 @@
+{
+ "exit": 0,
+ "status": "failed",
+ "message": "语言转换未完成：换脸未完成。详情：Traceback (most recent call last):\n  File \"/root/autodl-tmp/spcx-test/scripts/face_runner.py\", line 8, in <module>\n    from facefusion import download\nModuleNotFoundError: No module named 'facefusion'\n",
+ "seconds": 1622.9,
+ "options": {
+  "voice_mode": "standard",
+  "tts_model": "thai-f5",
+  "lip_model": "latentsync-1.6",
+  "quality": "high",
+  "face": true,
+  "requirement": "面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。",
+  "exchange_rate": 5.08
+ },
+ "quality": {}
+}

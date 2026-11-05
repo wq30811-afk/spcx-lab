@@ -1,0 +1,11 @@
+{
+  "frames": 1322,
+  "localized_frames": 1322,
+  "unlocalized_frames": 0,
+  "mouth_outside_frames": 0,
+  "clothing_policy": "original pixels outside mouth/face mask before final encoding",
+  "whole_frame_generation": false,
+  "fan_mouth_frames": 255,
+  "reverse_flow_assisted_frames": 0,
+  "optical_flow_assisted_frames": 38
+}

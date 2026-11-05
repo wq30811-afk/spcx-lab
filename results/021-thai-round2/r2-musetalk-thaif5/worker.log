@@ -1,0 +1,292 @@
+Device set to use cuda:0
+/root/autodl-tmp/spcx/.ai-env/lib/python3.12/site-packages/transformers/models/whisper/generation_whisper.py:573: FutureWarning: The input name `inputs` is deprecated. Please make sure to use `input_features` instead.
+  warnings.warn(
+You have passed task=transcribe, but also have set `forced_decoder_ids` to [[1, None], [2, 50360]] which creates a conflict. `forced_decoder_ids` will be ignored in favor of task=transcribe.
+WhisperModel is using WhisperSdpaAttention, but `torch.nn.functional.scaled_dot_product_attention` does not support `output_attentions=True` or `layer_head_mask` not None. Falling back to the manual attention implementation, but specifying the manual implementation will be required from Transformers version v5.0.0 onwards. This warning can be removed using the argument `attn_implementation="eager"` when loading the model.
+word timestamps unavailable, segment timestamps used: IndexError('index 0 is out of bounds for axis 0 with size 0')
+{"ok": true, "stage": "asr"}
+THAI_TRANSLATION_VALIDATED 8
+/root/autodl-tmp/spcx-test/.speech-env/lib/python3.12/site-packages/torchaudio/_backend/utils.py:213: UserWarning: In 2.9, this function's implementation will be changed to use torchaudio.load_with_torchcodec` under the hood. Some parameters like ``normalize``, ``format``, ``buffer_size``, and ``backend`` will be ignored. We recommend that you port your code to rely directly on TorchCodec's decoder instead: https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.AudioDecoder.html#torchcodec.decoders.AudioDecoder.
+  warnings.warn(
+/root/autodl-tmp/spcx-test/.speech-env/lib/python3.12/site-packages/torchaudio/_backend/ffmpeg.py:88: UserWarning: torio.io._streaming_media_decoder.StreamingMediaDecoder has been deprecated. This deprecation is part of a large refactoring effort to transition TorchAudio into a maintenance phase. The decoding and encoding capabilities of PyTorch for both audio and video are being consolidated into TorchCodec. Please see https://github.com/pytorch/audio/issues/3902 for more information. It will be removed from the 2.9 release. 
+  s = torchaudio.io.StreamReader(src, format, None, buffer_size)
+Load vocos from local path /root/autodl-tmp/spcx-test/models/speech/vocos
+
+vocab :  /root/autodl-tmp/spcx-test/models/speech/thonburian/megaF5/mega_vocab.txt
+token :  custom
+model :  /root/autodl-tmp/spcx-test/models/speech/thonburian/megaF5/mega_f5_last.safetensors 
+
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 กางเกงสีเทาตัวนี้หยิบมาให้หน่อย แล้วตัวที่ใส่อยู่ก็เปิดขายไปแล้วนะคะ ลูกค้าลองจับคู่แบบที่ใส่ดูสิ เห็นไหมกางเกงสีเทาตัวนี้ใส่กับเข็มขัดเส้นนี้ก็สวยนะคะ พี่สาวใส่กับสีเทาก็ได้ หรือจะใส่กับสีที่เพิ่งใส่ไปก็โอเคนะ แล้วก็ใส่กับสีเขียวตัวนี้ก็ได้ค่ะ ลองสัมผัสเนื้อผ้าเสื้อตัวนี้ดู เนื้อผ้าสวมใส่สบายมาก เป็นผ้าไอซ์ซิลค์เนื้อบางเบา แล้วใส่กับตัวสีน้ำตาลนี้ก็สวยใช่ไหม เปิดขายเสื้อหรือยัง เปิดแล้วนะคะ ใส่แล้วเย็นสบายมาก ใส่ในหน้าร้อนเลยค่ะ กางเกงสำหรับใส่หน้าร้อน จัดให้เลยนะคะ ชอบกางเกงตัวนี้มาก เป็นรุ่นใหม่เลย เสื้อเปิดขายไปแล้ว 300 ตัว สวยไหมคะ กางเกงที่ใส่อยู่นี้สวยไหม สวยนะคะ ดูโทนสีเขียวตรงเอวครึ่งทรง
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:02<00:00,  2.21s/it]100%|██████████| 1/1 [00:02<00:00,  2.21s/it]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 ใส่กับสีดำก็ได้นะคะ
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.79it/s]100%|██████████| 1/1 [00:00<00:00,  1.79it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เสื้อทีเชิ้ตสีดำปักลูกไม้ของฉันอยู่ข้างหน้า
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.79it/s]100%|██████████| 1/1 [00:00<00:00,  1.79it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เสื้อทีเชิ้ตสีดำ
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.78it/s]100%|██████████| 1/1 [00:00<00:00,  1.78it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เดี๋ยวหยิบมาให้ตัวนึงนะคะ
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.72it/s]100%|██████████| 1/1 [00:00<00:00,  1.72it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 แล้วก็อันนั้น
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.88it/s]100%|██████████| 1/1 [00:00<00:00,  1.88it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 ตัวที่มีตัวอักษรสีเขียวหยิบมาให้หน่อยค่ะ
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.97it/s]100%|██████████| 1/1 [00:00<00:00,  1.97it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เสื้อทีเชิ้ตตัวนั้น
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  3.20it/s]100%|██████████| 1/1 [00:00<00:00,  3.20it/s]
+{"ok": true, "stage": "tts"}
+THAI_TRANSLATION_VALIDATED 2
+/root/autodl-tmp/spcx-test/.speech-env/lib/python3.12/site-packages/torchaudio/_backend/utils.py:213: UserWarning: In 2.9, this function's implementation will be changed to use torchaudio.load_with_torchcodec` under the hood. Some parameters like ``normalize``, ``format``, ``buffer_size``, and ``backend`` will be ignored. We recommend that you port your code to rely directly on TorchCodec's decoder instead: https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.AudioDecoder.html#torchcodec.decoders.AudioDecoder.
+  warnings.warn(
+/root/autodl-tmp/spcx-test/.speech-env/lib/python3.12/site-packages/torchaudio/_backend/ffmpeg.py:88: UserWarning: torio.io._streaming_media_decoder.StreamingMediaDecoder has been deprecated. This deprecation is part of a large refactoring effort to transition TorchAudio into a maintenance phase. The decoding and encoding capabilities of PyTorch for both audio and video are being consolidated into TorchCodec. Please see https://github.com/pytorch/audio/issues/3902 for more information. It will be removed from the 2.9 release. 
+  s = torchaudio.io.StreamReader(src, format, None, buffer_size)
+Load vocos from local path /root/autodl-tmp/spcx-test/models/speech/vocos
+
+vocab :  /root/autodl-tmp/spcx-test/models/speech/thonburian/megaF5/mega_vocab.txt
+token :  custom
+model :  /root/autodl-tmp/spcx-test/models/speech/thonburian/megaF5/mega_f5_last.safetensors 
+
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เสื้อดำปักลูกไม้ของฉันอยู่ข้างหน้า
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:01<00:00,  1.41s/it]100%|██████████| 1/1 [00:01<00:00,  1.41s/it]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เอาตัวอักษรเขียวมาให้หน่อย
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.90it/s]100%|██████████| 1/1 [00:00<00:00,  1.90it/s]
+{"ok": true, "stage": "tts"}
+THAI_TRANSLATION_VALIDATED 1
+/root/autodl-tmp/spcx-test/.speech-env/lib/python3.12/site-packages/torchaudio/_backend/utils.py:213: UserWarning: In 2.9, this function's implementation will be changed to use torchaudio.load_with_torchcodec` under the hood. Some parameters like ``normalize``, ``format``, ``buffer_size``, and ``backend`` will be ignored. We recommend that you port your code to rely directly on TorchCodec's decoder instead: https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.AudioDecoder.html#torchcodec.decoders.AudioDecoder.
+  warnings.warn(
+/root/autodl-tmp/spcx-test/.speech-env/lib/python3.12/site-packages/torchaudio/_backend/ffmpeg.py:88: UserWarning: torio.io._streaming_media_decoder.StreamingMediaDecoder has been deprecated. This deprecation is part of a large refactoring effort to transition TorchAudio into a maintenance phase. The decoding and encoding capabilities of PyTorch for both audio and video are being consolidated into TorchCodec. Please see https://github.com/pytorch/audio/issues/3902 for more information. It will be removed from the 2.9 release. 
+  s = torchaudio.io.StreamReader(src, format, None, buffer_size)
+Load vocos from local path /root/autodl-tmp/spcx-test/models/speech/vocos
+
+vocab :  /root/autodl-tmp/spcx-test/models/speech/thonburian/megaF5/mega_vocab.txt
+token :  custom
+model :  /root/autodl-tmp/spcx-test/models/speech/thonburian/megaF5/mega_f5_last.safetensors 
+
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เสื้อดำปักลูกไม้ข้างหน้า
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:01<00:00,  1.12s/it]100%|██████████| 1/1 [00:01<00:00,  1.12s/it]
+{"ok": true, "stage": "tts"}
+THAI_ALIGNED 60.091
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793863844.124994  416036 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793863844.183859  416084 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793863844.185936  416036 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1793863844.220072  416095 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1793863844.242592  416106 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+I0000 00:00:1793863905.204870  416036 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793863905.242216  416222 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+W0000 00:00:1793863905.242689  416036 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+W0000 00:00:1793863905.254832  416227 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1793863905.286251  416239 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+{"frames": 1322, "localized": 1322, "fps": 22.0, "flow_frames": 38}
+An error occurred while trying to fetch /root/autodl-tmp/spcx-test/models/speech/sd-vae: Error no file named diffusion_pytorch_model.safetensors found in directory /root/autodl-tmp/spcx-test/models/speech/sd-vae.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+LIPS_GENERATED 32 1322
+LIPS_GENERATED 64 1322
+LIPS_GENERATED 96 1322
+LIPS_GENERATED 128 1322
+LIPS_GENERATED 160 1322
+LIPS_GENERATED 192 1322
+LIPS_GENERATED 224 1322
+LIPS_GENERATED 256 1322
+LIPS_GENERATED 288 1322
+LIPS_GENERATED 320 1322
+LIPS_GENERATED 352 1322
+LIPS_GENERATED 384 1322
+LIPS_GENERATED 416 1322
+LIPS_GENERATED 448 1322
+LIPS_GENERATED 480 1322
+LIPS_GENERATED 512 1322
+LIPS_GENERATED 544 1322
+LIPS_GENERATED 576 1322
+LIPS_GENERATED 608 1322
+LIPS_GENERATED 640 1322
+LIPS_GENERATED 672 1322
+LIPS_GENERATED 704 1322
+LIPS_GENERATED 736 1322
+LIPS_GENERATED 768 1322
+LIPS_GENERATED 800 1322
+LIPS_GENERATED 832 1322
+LIPS_GENERATED 864 1322
+LIPS_GENERATED 896 1322
+LIPS_GENERATED 928 1322
+LIPS_GENERATED 960 1322
+LIPS_GENERATED 992 1322
+LIPS_GENERATED 1024 1322
+LIPS_GENERATED 1056 1322
+LIPS_GENERATED 1088 1322
+LIPS_GENERATED 1120 1322
+LIPS_GENERATED 1152 1322
+LIPS_GENERATED 1184 1322
+LIPS_GENERATED 1216 1322
+LIPS_GENERATED 1248 1322
+LIPS_GENERATED 1280 1322
+LIPS_GENERATED 1312 1322
+LIPS_PATCHES_COMPLETE 1322
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793863974.186555  416522 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793863974.236134  416592 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+INFO: Created TensorFlow Lite delegate for GPU.
+[0;93m2026-11-05 15:32:55.513454230 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-05 15:32:55.513488613 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+[0;93m2026-11-05 15:32:55.513498456 [W:onnxruntime:Default, upsamplebase.h:178 UpsampleBase] `tf_half_pixel_for_nn` is deprecated since opset 13, yet this opset 13 model uses the deprecated attribute[m
+I0000 00:00:1793863975.514016  416522 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1793863975.545236  416677 gl_context.cc:369] GL version: 3.2 (OpenGL ES 3.2 NVIDIA 595.71.05), renderer: NVIDIA GeForce RTX 5090/PCIe/SSE2
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1793863975.595633  416680 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/root/autodl-tmp/spcx-test/.venv/lib/python3.12/site-packages/mediapipe/tasks/python/vision/image_segmenter.py:158: UserWarning: MessageFactory class is deprecated. Please use GetMessageClass() instead of MessageFactory.GetPrototype. MessageFactory class will be removed after 2024.
+  graph_config = self._runner.get_graph_config()
+[1;31m2026-11-05 15:32:55.778247628 [E:onnxruntime:Default, cudnn_fe_call.cc:33 CudaErrString<cudnn_frontend::error_object>] [cudnn_frontend] Error: No execution plans support the graph.[m
+E0000 00:00:1793863976.047040  416592 tensor.cc:410] Tensors are designed for single writes. Multiple writes to a Tensor instance are not supported and may lead to undefined behavior due to lack of synchronization.
+W0000 00:00:1793863976.076169  416614 landmark_projection_calculator.cc:186] Using NORM_RECT without IMAGE_DIMENSIONS is only supported for the square ROI. Provide IMAGE_DIMENSIONS or use PROJECTION_MATRIX.
+LIPS_COMPOSITED 30 1322
+LIPS_COMPOSITED 60 1322
+LIPS_COMPOSITED 90 1322
+LIPS_COMPOSITED 120 1322
+LIPS_COMPOSITED 150 1322
+LIPS_COMPOSITED 180 1322
+LIPS_COMPOSITED 210 1322
+LIPS_COMPOSITED 240 1322
+LIPS_COMPOSITED 270 1322
+LIPS_COMPOSITED 300 1322
+LIPS_COMPOSITED 330 1322
+LIPS_COMPOSITED 360 1322
+LIPS_COMPOSITED 390 1322
+LIPS_COMPOSITED 420 1322
+LIPS_COMPOSITED 450 1322
+LIPS_COMPOSITED 480 1322
+LIPS_COMPOSITED 510 1322
+LIPS_COMPOSITED 540 1322
+LIPS_COMPOSITED 570 1322
+LIPS_COMPOSITED 600 1322
+LIPS_COMPOSITED 630 1322
+LIPS_COMPOSITED 660 1322
+LIPS_COMPOSITED 690 1322
+LIPS_COMPOSITED 720 1322
+LIPS_COMPOSITED 750 1322
+LIPS_COMPOSITED 780 1322
+LIPS_COMPOSITED 810 1322
+LIPS_COMPOSITED 840 1322
+LIPS_COMPOSITED 870 1322
+LIPS_COMPOSITED 900 1322
+LIPS_COMPOSITED 930 1322
+LIPS_COMPOSITED 960 1322
+LIPS_COMPOSITED 990 1322
+LIPS_COMPOSITED 1020 1322
+LIPS_COMPOSITED 1050 1322
+LIPS_COMPOSITED 1080 1322
+LIPS_COMPOSITED 1110 1322
+LIPS_COMPOSITED 1140 1322
+LIPS_COMPOSITED 1170 1322
+LIPS_COMPOSITED 1200 1322
+LIPS_COMPOSITED 1230 1322
+LIPS_COMPOSITED 1260 1322
+LIPS_COMPOSITED 1290 1322
+LIPS_COMPOSITED 1320 1322
+LIPS_COMPOSITE_COMPLETE 1322 1322
+Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/video_worker.py", line 23, in <module>
+    out,face_checks=swap_video(id,c,current,work)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/autodl-tmp/spcx-test/app/face_video.py", line 42, in swap_video
+    if proc.returncode or not out.exists():raise RuntimeError('换脸未完成。详情：'+logfile.read_text(errors='replace')[-1400:])
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: 换脸未完成。详情：Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/face_runner.py", line 8, in <module>
+    from facefusion import download
+ModuleNotFoundError: No module named 'facefusion'
+
+Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/smart_stage.py", line 38, in <module>
+    raise RuntimeError(failure[-1])
+RuntimeError: 换脸未完成。详情：Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/face_runner.py", line 8, in <module>
+    from facefusion import download
+ModuleNotFoundError: No module named 'facefusion'
+
+Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/language_video_worker.py", line 178, in <module>
+    optional=video_stage(current,93,5);current=optional['asset'];quality['optional_video']={k:v for k,v in optional.items() if k not in ('asset','meta')}
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/autodl-tmp/spcx-test/scripts/language_video_worker.py", line 39, in video_stage
+    raise ValueError(detail or '可选换脸、背景或遮挡阶段未完成')
+ValueError: 换脸未完成。详情：Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/face_runner.py", line 8, in <module>
+    from facefusion import download
+ModuleNotFoundError: No module named 'facefusion'
+
