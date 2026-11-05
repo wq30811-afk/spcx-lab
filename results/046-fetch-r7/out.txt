@@ -1,0 +1,6 @@
+-rw-r--r-- 2 root root 50610629 Nov  5 19:48 /root/autodl-tmp/spcx-test/outputs/media/2b35c0e5f92d4fb6a9e04a4d5e227c9b.mp4
+total 49436
+drwxr-xr-x  2 root root       48 Nov  5 19:51 .
+drwxr-xr-x 50 root root     4096 Nov  5 19:51 ..
+-rw-r--r--  1 root root      123 Nov  5 19:51 out.full
+-rw-r--r--  1 root root 50610629 Nov  5 19:51 r7.mp4
