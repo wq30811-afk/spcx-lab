@@ -1,0 +1,8 @@
+stream|codec_type=video|width=1080|height=1906|avg_frame_rate=25/1
+stream|codec_type=audio|avg_frame_rate=0/0
+format|duration=60.080000|size=50691145
+total 49512
+drwxr-xr-x  2 root root       80 Nov  5 17:03 .
+drwxr-xr-x 29 root root     4096 Nov  5 17:03 ..
+-rw-r--r--  1 root root      150 Nov  5 17:03 out.full
+-rw-r--r--  1 root root 50691145 Nov  5 17:03 thai-omnivoice-latentsync-faceswap.mp4
