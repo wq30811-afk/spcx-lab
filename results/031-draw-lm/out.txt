@@ -1,0 +1,12 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+469 diff-vs-prev 4.95
+470 diff-vs-prev 4.24
+471 diff-vs-prev 0.22
+472 diff-vs-prev 4.72
+473 diff-vs-prev 3.58
+474 diff-vs-prev 2.79
+475 diff-vs-prev 2.34
+476 diff-vs-prev 3.12
+477 diff-vs-prev 3.47
+478 diff-vs-prev 4.93
