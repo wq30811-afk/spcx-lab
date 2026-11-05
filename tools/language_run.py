@@ -18,7 +18,9 @@ def link_runtime():
     (TEST / 'engines').mkdir(exist_ok=True)
     for eng in (PROD / 'engines').iterdir():
         dst = TEST / 'engines' / eng.name
-        if eng.name == 'facefusion' or dst.is_symlink(): continue
+        if dst.is_symlink(): continue
+        if eng.name == 'facefusion' and dst.is_dir() and any(p.name != '.assets' for p in dst.iterdir()): continue
+        if eng.name == 'facefusion' and dst.is_dir(): shutil.rmtree(dst)   # empty submodule (+ .assets link) -> full engine link
         if dst.is_dir() and not any(dst.iterdir()): dst.rmdir()      # empty submodule checkout
         if not dst.exists(): dst.symlink_to(eng)
     for name in ('models', 'bin'):
