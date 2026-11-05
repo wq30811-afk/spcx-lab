@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/language_video_worker.py", line 52, in <module>
+    lip_model=resolve_lip_model(c)
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/root/autodl-tmp/spcx-test/app/lip_models.py", line 21, in resolve_lip_model
+    if requested=='latentsync-1.6' and not available:raise ValueError('高清口型模型尚未安装并验证，请选择快速 MuseTalk')
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: 高清口型模型尚未安装并验证，请选择快速 MuseTalk

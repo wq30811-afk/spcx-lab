@@ -1,0 +1,15 @@
+{
+ "exit": 0,
+ "status": "failed",
+ "message": "语言转换未完成：高清口型模型尚未安装并验证，请选择快速 MuseTalk",
+ "seconds": 0.1,
+ "options": {
+  "voice_mode": "standard",
+  "tts_model": "thai-f5",
+  "lip_model": "latentsync-1.6",
+  "quality": "high",
+  "face": true,
+  "requirement": "面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。所有价格一律换算成泰铢说出：1人民币=5.08泰铢，换算后四舍五入到个位（例如99元说成503泰铢），不要出现人民币、元或中国价格。"
+ },
+ "quality": {}
+}

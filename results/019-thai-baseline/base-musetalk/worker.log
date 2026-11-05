@@ -1,0 +1,102 @@
+Device set to use cuda:0
+/root/autodl-tmp/spcx/.ai-env/lib/python3.12/site-packages/transformers/models/whisper/generation_whisper.py:573: FutureWarning: The input name `inputs` is deprecated. Please make sure to use `input_features` instead.
+  warnings.warn(
+You have passed task=transcribe, but also have set `forced_decoder_ids` to [[1, None], [2, 50360]] which creates a conflict. `forced_decoder_ids` will be ignored in favor of task=transcribe.
+{"ok": true, "stage": "asr"}
+THAI_TRANSLATION_VALIDATED 8
+/root/autodl-tmp/spcx-test/.speech-env/lib/python3.12/site-packages/torchaudio/_backend/utils.py:213: UserWarning: In 2.9, this function's implementation will be changed to use torchaudio.load_with_torchcodec` under the hood. Some parameters like ``normalize``, ``format``, ``buffer_size``, and ``backend`` will be ignored. We recommend that you port your code to rely directly on TorchCodec's decoder instead: https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.AudioDecoder.html#torchcodec.decoders.AudioDecoder.
+  warnings.warn(
+/root/autodl-tmp/spcx-test/.speech-env/lib/python3.12/site-packages/torchaudio/_backend/ffmpeg.py:88: UserWarning: torio.io._streaming_media_decoder.StreamingMediaDecoder has been deprecated. This deprecation is part of a large refactoring effort to transition TorchAudio into a maintenance phase. The decoding and encoding capabilities of PyTorch for both audio and video are being consolidated into TorchCodec. Please see https://github.com/pytorch/audio/issues/3902 for more information. It will be removed from the 2.9 release. 
+  s = torchaudio.io.StreamReader(src, format, None, buffer_size)
+Load vocos from local path /root/autodl-tmp/spcx-test/models/speech/vocos
+
+vocab :  /root/autodl-tmp/spcx-test/models/speech/thonburian/megaF5/mega_vocab.txt
+token :  custom
+model :  /root/autodl-tmp/spcx-test/models/speech/thonburian/megaF5/mega_f5_last.safetensors 
+
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เอาตัวกางเกงสีเทาตัวนี้มาให้หน่อย แล้วตัวที่ใส่อยู่นี้ก็เปิดขายไปแล้วนะคะ ลูกค้าลองจับคู่แบบที่ใส่ดูสิ เห็นไหมกางเกงสีเทาตัวนี้ เข็มขัดเส้นนี้ กางเกงตัวนี้จับคู่แล้วก็สวยใช่ไหมคะ พี่สาว จับคู่กับสีเทาก็ได้ หรือจะจับคู่กับสีที่เพิ่งใส่ไปก็โอเคนะ หรือจะจับคู่กับสีเขียวตัวนี้ก็ได้ค่ะ พี่สาว ลองสัมผัสดูเองเลย ผ้าของเสื้อตัวนี้ ผ้าเนียนมากๆ เป็นผ้าไอซ์ซิลค์เนื้อบางเบา แล้วจับคู่กับสีนี้ก็สวยใช่ไหม เปิดขายหรือยังเสื้อ?
+gen_text 1 เปิดแล้วนะ ใส่แล้วเย็นสบายมาก เป็นเสื้อที่ใส่หน้าร้อนเลย กางเกงที่ใส่หน้าร้อน จัดมาให้ชุดนึงเลย ชอบกางเกงตัวนี้มาก กางเกงตัวนี้เป็นรุ่นใหม่ เสื้อเปิดขายไปแล้ว 300 ตัวแล้วใช่ไหม? กางเกงที่ใส่อยู่นี้สวยไหม?
+gen_text 2 สวยใช่ไหม ลองดูโทนสีเขียวตรงเอวทรงครึ่ง
+
+
+Generating audio in 3 batches...
+  0%|          | 0/3 [00:00<?, ?it/s] 33%|███▎      | 1/3 [00:01<00:03,  1.98s/it] 67%|██████▋   | 2/3 [00:02<00:01,  1.17s/it]100%|██████████| 3/3 [00:03<00:00,  1.12it/s]100%|██████████| 3/3 [00:03<00:00,  1.05s/it]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 จับคู่กับสีดำก็ได้นะ
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.69it/s]100%|██████████| 1/1 [00:00<00:00,  1.69it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เสื้อยืดสีดำตัวที่ปักลูกไม้ของฉันอยู่ข้างหน้า
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.82it/s]100%|██████████| 1/1 [00:00<00:00,  1.81it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เสื้อยืดสีดำ
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.82it/s]100%|██████████| 1/1 [00:00<00:00,  1.82it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เดี๋ยวหยิบมาให้ตัวนึง
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.83it/s]100%|██████████| 1/1 [00:00<00:00,  1.83it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 แล้วก็อันนั้น
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.82it/s]100%|██████████| 1/1 [00:00<00:00,  1.82it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 ตัวที่มีตัวอักษรสีเขียวอันนั้น หยิบมาให้หน่อย
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.81it/s]100%|██████████| 1/1 [00:00<00:00,  1.81it/s]
+Converting audio...
+Using custom reference text...
+
+ref_text   ใครเป็นผู้รับ. 
+gen_text 0 เสื้อยืดตัวนั้น
+
+
+Generating audio in 1 batches...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.66it/s]100%|██████████| 1/1 [00:00<00:00,  1.66it/s]
+{"ok": true, "stage": "tts"}
+Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/speech_align.py", line 7, in <module>
+    if speed>spec.get('max_speed',1.8):raise ValueError('第'+str(i+1)+'句泰语过长，请缩短译文后重试；没有截断台词或改变服装画面')
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: 第3句泰语过长，请缩短译文后重试；没有截断台词或改变服装画面
+Traceback (most recent call last):
+  File "/root/autodl-tmp/spcx-test/scripts/language_video_worker.py", line 114, in <module>
+    invoke('speech_align.py',{'segments':rows,'duration':duration,'output':str(aligned),'max_speed':1.8})
+  File "/root/autodl-tmp/spcx-test/scripts/language_video_worker.py", line 26, in invoke
+    raise ValueError('当前阶段未完成，请查看任务日志或更换模型')
+ValueError: 当前阶段未完成，请查看任务日志或更换模型
