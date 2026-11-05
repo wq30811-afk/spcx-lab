@@ -1,0 +1,56 @@
+Device set to use cuda:0
+You have passed task=transcribe, but also have set `forced_decoder_ids` to [[1, None], [2, 50360]] which creates a conflict. `forced_decoder_ids` will be ignored in favor of task=transcribe.
+Whisper did not predict an ending timestamp, which can happen if audio is cut off in the middle of a word. Also make sure WhisperTimeStampLogitsProcessor was used during generation.
+Device set to use cuda:0
+Whisper did not predict an ending timestamp, which can happen if audio is cut off in the middle of a word. Also make sure WhisperTimeStampLogitsProcessor was used during generation.
+Device set to use cuda:0
+Whisper did not predict an ending timestamp, which can happen if audio is cut off in the middle of a word. Also make sure WhisperTimeStampLogitsProcessor was used during generation.
+== chunk30_word_b1: 26 chunks, longest 6.4s
+   (0.0, 1.94) 对这条灰的裤子拿下过来
+   (2.26, 4.8) 然后我身上这个直接开过了宝宝
+   (5.14, 11.04) 你就直接去搭我这种你看灰色的这条卡的腰带这条裤子是不是也可以搭配
+   (11.68, 14.38) 很好看姐妹啊就搭灰的也行
+   (14.76, 17.32) 搭我刚才穿的那种卡也没问题
+   (17.74, 21.98) 然后再搭这个绿也是可以的姐妹啊你自己感受一下
+   (22.32, 28.68) 上衣的材质上衣的面料非常的舒服它是一个冰丝的那种小面料
+   (28.68, 30.46) ,然后你搭这个卡的是不是也好看
+   (30.46, 30.76) ?是
+   (30.76, 31.86) ,开过没上衣
+   (31.86, 32.36) ?开好了
+   (32.36, 33.18) ,很凉快
+== longform_segment: 42 chunks, longest 4.1s
+   (0.0, 2.0) 对这条灰的裤子拿下过来
+   (2.0, 4.86) 然后我身上这个直接开过了宝宝
+   (4.86, 7.9) 你就直接去搭我这种你看灰色的这条
+   (7.9, 11.06) 卡的腰带这条裤子是不是也可以搭配
+   (11.06, 14.46) 很好看姐妹啊就搭灰的也行
+   (14.46, 17.36) 搭我刚才穿的那种卡也没问题
+   (17.36, 20.36) 然后再搭这个绿也是可以的
+   (20.36, 22.06) 姐妹啊你自己感受一下
+   (22.06, 26.14) 上衣的材质上衣的面料非常的舒服
+   (26.14, 28.7) 它是一个冰丝的那种一个小面料
+   (28.7, 0.0) 
+   (1.82, 2.12) 然后你搭这个咖的是不是也好看是
+== longform_word: 39 chunks, longest 3.8s
+   (0.0, 1.94) 对这条灰的裤子拿下过来
+   (2.26, 4.8) 然后我身上这个直接开过了宝宝
+   (5.14, 7.88) 你就直接去搭我这种你看灰色的这条
+   (8.32, 11.04) 卡的腰带这条裤子是不是也可以搭配
+   (11.66, 14.36) 很好看姐妹啊就搭灰的也行
+   (14.76, 17.32) 搭我刚才穿的那种卡也没问题
+   (17.74, 20.3) 然后再搭这个绿也是可以的
+   (20.48, 21.98) 姐妹啊你自己感受一下
+   (22.32, 26.08) 上衣的材质上衣的面料非常的舒服
+   (26.36, 28.68) 它是一个冰丝的那种一个小面料
+   (28.7, 30.76) 然后你搭这个咖的是不是也好看是
+   (30.94, 31.86) 开过没上衣
+total 28536
+drwxr-xr-x  2 root root    4096 Nov  5 16:25 .
+drwxr-xr-x 26 root root    4096 Nov  5 16:24 ..
+-rw-r--r--  1 root root    3096 Nov  5 16:24 chunk30_word_b1.json
+-rw-r--r--  1 root root    3809 Nov  5 16:24 longform_segment.json
+-rw-r--r--  1 root root    3684 Nov  5 16:24 longform_word.json
+-rw-r--r--  1 root root    2970 Nov  5 16:24 out.full
+-rw-r--r--  1 root root 9819097 Nov  5 16:25 r2-latentsync-thaif5-lipsync.mp4
+-rw-r--r--  1 root root 9593832 Nov  5 16:25 r2-musetalk-omnivoice-lipsync.mp4
+-rw-r--r--  1 root root 9775853 Nov  5 16:25 r2-musetalk-thaif5-lipsync.mp4
