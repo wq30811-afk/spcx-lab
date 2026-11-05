@@ -1,0 +1,46 @@
+== job 023-thai-r3-latent-thaif5  2026-11-05 16:29:04
+{
+ "base": "main",
+ "patches": [
+  "patches/fix-language-timing.patch",
+  "patches/fix-asr-word-batch1.patch",
+  "patches/feat-face-before-lips.patch"
+ ],
+ "steps": [
+  {
+   "kind": "pytest",
+   "tests": [
+    "tests/test_thai_timing.py"
+   ]
+  },
+  {
+   "kind": "language",
+   "video": "/root/autodl-tmp/spcx-test/thai-test-60s.mp4",
+   "face": "/root/autodl-tmp/spcx-lab/results/018-ai-faces/face-2-seed23.jpg",
+   "voice": "standard",
+   "requirement": "面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。",
+   "rate": 5.08,
+   "lip": "latentsync-1.6",
+   "quality": "high",
+   "tts": "thai-f5",
+   "name": "r3"
+  }
+ ]
+}
+== spcx-test at 2b308cc docs: 记录150帧5秒实际成片核验及原背景回流改善，尚未部署
+== apply patches/fix-language-timing.patch
+== apply patches/fix-asr-word-batch1.patch
+== apply patches/feat-face-before-lips.patch
+ M app/language_api.py
+ M app/language_core.py
+ M scripts/language_video_worker.py
+ M scripts/speech_align.py
+ M scripts/speech_infer.py
+ M scripts/speech_translate.py
+$ /root/autodl-tmp/spcx/.venv/bin/python -m pytest -q tests/test_thai_timing.py
+......                                                                   [100%]
+6 passed in 0.54s
+$ /root/autodl-tmp/spcx/.venv/bin/python /root/autodl-tmp/spcx-lab/tools/language_run.py /root/autodl-tmp/spcx-test/thai-test-60s.mp4 /root/autodl-tmp/spcx-lab/results/023-thai-r3-latent-thaif5/r3 --face /root/autodl-tmp/spcx-lab/results/018-ai-faces/face-2-seed23.jpg --voice standard --lip latentsync-1.6 --quality high --requirement 面向泰国TikTok直播带货观众，用自然口语化的泰语带货语气。 --rate 5.08 --tts thai-f5
+job 40a2ab9972e345a8b7cb116e8f7cb18c
+Terminated
+== exit 143  2026-11-05 16:32:28
