@@ -1,0 +1,225 @@
+From c3ba0be3192cc0601001714ce7980582e24e8bca Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 5 Nov 2026 19:43:02 +0900
+Subject: [PATCH] fix(lips): measure face geometry on the original face when
+ the face is swapped; drop the flow override; spike guard reports only; ASR
+ keeps tail speech once
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015XEHdEnhr7p5ae4FL4TjbE
+---
+ app/face_flow.py                 | 16 ----------------
+ scripts/language_video_worker.py | 14 ++++++++++++--
+ scripts/lips_composite_roi.py    | 13 +++++--------
+ scripts/lips_prepare.py          | 13 ++++---------
+ scripts/speech_infer.py          | 18 +++++++++++++++++-
+ tests/test_lip_temporal.py       | 12 ------------
+ tests/test_thai_timing.py        |  8 ++++++++
+ 7 files changed, 46 insertions(+), 48 deletions(-)
+
+diff --git a/app/face_flow.py b/app/face_flow.py
+index f7bcc71..a681f26 100644
+--- a/app/face_flow.py
++++ b/app/face_flow.py
+@@ -36,19 +36,3 @@ def follow(previous,current,points,allow_partial=False):
+   # the chin is still visible. No pixels are synthesized for that interval.
+   if not (allow_partial and -h*.2<center[1]<0 and 0<result[152,1]<h and 0<result[152,0]<w):return None
+  return result
+-
+-BROWS=([70,63,105,66,107],[336,296,334,293,300])
+-def _anchors(p):return np.array([p[BROWS[0],:2].mean(0),p[BROWS[1],:2].mean(0),p[1,:2]])
+-def verify(previous,current,previous_points,detected,tolerance=.15):
+- """Cross-check a fresh detection against the pixels. A detector can misplace the whole face
+- for several frames (e.g. after a hand sweeps past) while the image barely changes. When the
+- detection jumps from the previous points by more than `tolerance` of the face size and
+- optical flow of the actual face texture disagrees by as much, the flow-tracked points are
+- returned instead. Returns (points, overridden)."""
+- if detected is None or previous_points is None or not np.isfinite(previous_points[[1]+BROWS[0]+BROWS[1],:2]).all():return detected,False
+- a,d=_anchors(previous_points),_anchors(detected);size=float(np.linalg.norm(a[0]-a[1])) or 1.
+- if float(np.linalg.norm(d-a,axis=1).max())/size<=tolerance:return detected,False
+- tracked=follow(previous,current,previous_points)
+- if tracked is None:return detected,False
+- if float(np.linalg.norm(d-_anchors(tracked),axis=1).max())/size<=tolerance:return detected,False
+- return tracked,True
+diff --git a/scripts/language_video_worker.py b/scripts/language_video_worker.py
+index 6215d8e..8a335b4 100644
+--- a/scripts/language_video_worker.py
++++ b/scripts/language_video_worker.py
+@@ -11,6 +11,9 @@ id=sys.argv[1];j=store.job(id);c=j['config'];work=ROOT/'work/jobs'/id;work.mkdir
+ def update(p,msg):
+  if store.job(id)['status'] in ('cancelled','interrupted','stopped'):raise SystemExit(2)
+  store.update(id,progress=p,message=msg)
++def frame_count(path):
++ import cv2
++ cap=cv2.VideoCapture(str(path));n=int(cap.get(cv2.CAP_PROP_FRAME_COUNT));cap.release();return n
+ def invoke(script,spec,env='core',timeout=1800):
+  path=work/(script+'-'+uuid.uuid4().hex[:6]+'.json');path.write_text(json.dumps(spec,ensure_ascii=False))
+  python={'speech':speech,'ai':ROOT/'.ai-env/bin/python','omni':ROOT/'.omnivoice-env/bin/python','moss':ROOT/'.moss-env/bin/python','latent':ROOT/'.latentsync-env/bin/python'}.get(env,core)
+@@ -155,9 +158,15 @@ try:
+    # and lets the lip model see the final face.
+    update(44,'先换脸，再按换脸后的脸对口型')
+    swapped=video_stage(store.public_asset(store.add_asset(video,'language-source-for-face.mp4','video',probe(video))),44,1,face_only=True)
+-   video=Path(store.asset(swapped['asset']['id'])['path']);meta=probe(video);face_done=True
++   unswapped=video;video=Path(store.asset(swapped['asset']['id'])['path']);meta=probe(video);face_done=True
+   geometry=work/'geometry.npz';patches=work/'mouth-patches.mp4';spec={'video':str(video),'audio':str(aligned),'geometry':str(geometry),'patches':str(patches),'output':str(geometry)}
+-  update(45,'定位嘴部、转头和前景遮挡');invoke('lips_prepare.py',spec)
++  # Face geometry is measured on the real face. The swap keeps head pose, position and
++  # expression frame by frame, but its blended face can make the landmarker misplace the
++  # whole face for several frames (eyes on the cheeks), which LatentSync then turns into a
++  # twisted mouth. Pixels for generation and compositing still come from the swapped video.
++  geometry_video=unswapped if face_done and frame_count(unswapped)==frame_count(video) else video
++  update(45,'定位嘴部、转头和前景遮挡');invoke('lips_prepare.py',dict(spec,video=str(geometry_video)))
++  geometry_source='original face (before swap)' if geometry_video!=video else 'final face'
+   import numpy as np
+   from app.language_core import validate_lip_geometry
+   with np.load(geometry) as g:validate_lip_geometry(g['boxes'],g['outside_frames'] if 'outside_frames' in g else 0)
+@@ -170,6 +179,7 @@ try:
+    update(54,'MuseTalk局部口型推理，保留原衣服画面');spec['output']=str(patches);invoke('lips_generate.py',spec,'speech')
+    update(68,'只合成嘴部皮肤，恢复原手部与衣物');spec['output']=str(resultfile);invoke('lips_composite.py',spec)
+   quality=json.loads(Path(str(resultfile)+'.quality.json').read_text())
++  quality['lip_geometry_source']=geometry_source
+   if quality['unlocalized_frames']>0:raise ValueError('嘴部定位覆盖不足，未交付未同步的成片；请使用嘴部遮挡，或换清晰单人正面片段')
+  else:
+   subprocess.run([FFMPEG,'-v','error','-y','-i',str(video),'-i',str(aligned),'-map','0:v:0','-map','1:a:0','-c:v','copy','-c:a','aac','-b:a','192k','-shortest','-movflags','+faststart',str(resultfile)],check=True)
+diff --git a/scripts/lips_composite_roi.py b/scripts/lips_composite_roi.py
+index fbfd232..60d1fcf 100644
+--- a/scripts/lips_composite_roi.py
++++ b/scripts/lips_composite_roi.py
+@@ -20,13 +20,10 @@ try:
+   result=hands.process(cv2.cvtColor(frame,cv2.COLOR_BGR2RGB));hand_points=[np.array([(v.x*w,v.y*h) for v in hand.landmark],np.float32) for hand in result.multi_hand_landmarks or []]
+   out,allowed,box=compose_roi(frame,patch,points,matrix,occlusion,hand_points)
+   changed=int(np.count_nonzero(np.any(out[allowed]!=frame[allowed],axis=1)))
+-  # Last guard: a generated mouth suddenly covering far more than in the recent frames is a
+-  # misplaced patch, not speech. Keep the (face-swapped) source mouth for that frame instead.
+-  # Only a flash (at most 2 frames in a row) is reverted: a lasting change is real (mouth opens,
+-  # face comes closer), so the history always follows the measured size.
+-  base=float(np.median(recent)) if len(recent)>=5 else 0.;streak=len(reverted)>=2 and reverted[-2:]==[count-2,count-1];recent.append(changed)
+-  if base>50 and changed>base*2.5 and not streak:
+-   out=frame.copy();reverted.append(count);changed=0
++  # Report only: a generated mouth suddenly covering far more than in the recent frames is
++  # listed for review. Swapping single frames back to the source mouth made it flicker.
++  base=float(np.median(recent)) if len(recent)>=5 else 0.;recent.append(changed)
++  if base>50 and changed>base*2.5:reverted.append(count)
+   changed_frames+=int(changed>0);changed_pixels+=changed
+   part=audio[round(count*audio_rate/fps):round((count+1)*audio_rate/fps)];voiced=bool(len(part) and float(np.sqrt(np.mean(part**2)))>.006);voiced_frames+=int(voiced)
+   if voiced and not changed:unchanged_voiced.append(count)
+@@ -40,6 +37,6 @@ try:
+ finally:
+  source.release();patches.release();occlusion.close();hands.close();writer.stdin.close();code=writer.wait();log.close()
+ if code or count!=expected:raise ValueError('局部合成未完整完成')
+-quality={'frames':count,'localized_frames':count,'unlocalized_frames':0,'mouth_outside_frames':0,'outside_mouth_preencode_changed_pixels':0,'whole_frame_generation':False,'clothing_policy':'original pixels outside bounded mouth region before encoding','mouth_envelope':'speech opening aware v27','reverted_spike_frames':reverted,'repaired_landmark_frames':[int(x) for x in g['repaired_frames']] if 'repaired_frames' in g.files else [],'composite':'face ROI with current-frame foreground protection','elapsed_seconds':round(time.monotonic()-start,3),'mean_roi_fraction':round(roi_pixels/max(1,count*w*h),5),'changed_mouth_frames':changed_frames,'changed_mouth_pixels':changed_pixels,'voiced_frames':voiced_frames,'unchanged_voiced_frame_indices':unchanged_voiced}
++quality={'frames':count,'localized_frames':count,'unlocalized_frames':0,'mouth_outside_frames':0,'outside_mouth_preencode_changed_pixels':0,'whole_frame_generation':False,'clothing_policy':'original pixels outside bounded mouth region before encoding','mouth_envelope':'speech opening aware v27','mouth_size_spike_frames':reverted,'repaired_landmark_frames':[int(x) for x in g['repaired_frames']] if 'repaired_frames' in g.files else [],'composite':'face ROI with current-frame foreground protection','elapsed_seconds':round(time.monotonic()-start,3),'mean_roi_fraction':round(roi_pixels/max(1,count*w*h),5),'changed_mouth_frames':changed_frames,'changed_mouth_pixels':changed_pixels,'voiced_frames':voiced_frames,'unchanged_voiced_frame_indices':unchanged_voiced}
+ if voiced_frames>=5 and len(unchanged_voiced)==voiced_frames:raise ValueError('所有有声帧均未合成嘴部，拒绝作为对口型结果')
+ Path(s['output']+'.quality.json').write_text(json.dumps(quality,ensure_ascii=False,indent=2));print(json.dumps(quality),flush=True)
+diff --git a/scripts/lips_prepare.py b/scripts/lips_prepare.py
+index 16a345e..4e04451 100644
+--- a/scripts/lips_prepare.py
++++ b/scripts/lips_prepare.py
+@@ -3,10 +3,10 @@ from pathlib import Path
+ import os,sys,json,cv2,numpy as np
+ ROOT=Path(os.environ.get('SPCX_ROOT',Path(__file__).resolve().parents[1]));sys.path.insert(0,str(ROOT))
+ from app.vision_runtime import base_options
+-from app.face_flow import follow,verify
++from app.face_flow import follow
+ import mediapipe as mp
+ from mediapipe.tasks.python import vision
+-spec=json.loads(Path(sys.argv[1]).read_text());cap=cv2.VideoCapture(spec['video']);fps=cap.get(cv2.CAP_PROP_FPS);w=int(cap.get(3));h=int(cap.get(4));rows=[];boxes=[];refiner=None;mouth_refiner=None;previous_frame=None;previous_points=None;flow_frames=0;outside_frames=0;fan_refiner=None;fan_frames=0;last_valid_frame=None;last_valid_points=None;last_valid_index=-100;checked_frames=[];override_run=0
++spec=json.loads(Path(sys.argv[1]).read_text());cap=cv2.VideoCapture(spec['video']);fps=cap.get(cv2.CAP_PROP_FPS);w=int(cap.get(3));h=int(cap.get(4));rows=[];boxes=[];refiner=None;mouth_refiner=None;previous_frame=None;previous_points=None;flow_frames=0;outside_frames=0;fan_refiner=None;fan_frames=0;last_valid_frame=None;last_valid_points=None;last_valid_index=-100
+ mesh=vision.FaceLandmarker.create_from_options(vision.FaceLandmarkerOptions(base_options=base_options('face_landmarker.task',False),running_mode=vision.RunningMode.VIDEO,num_faces=2,min_face_detection_confidence=.35,min_face_presence_confidence=.35))
+ try:
+  while True:
+@@ -19,11 +19,6 @@ try:
+    a,b=faces[:2];lo=np.maximum(a[:,:2].min(0),b[:,:2].min(0));hi=np.minimum(a[:,:2].max(0),b[:,:2].max(0));intersection=float(np.maximum(0,hi-lo).prod());area_a=float(np.ptp(a[:,0])*np.ptp(a[:,1]));area_b=float(np.ptp(b[:,0])*np.ptp(b[:,1]))
+    if area_b>area_a*.4 and intersection/max(1,area_a+area_b-intersection)<.25:raise ValueError("检测到多个大小接近的人脸，请先裁剪或指定目标人物")
+   lm=faces[0] if faces else None
+-  if lm is not None and override_run<25:
+-   lm,overridden=verify(previous_frame,frame,previous_points,lm)
+-   if overridden:checked_frames.append(len(rows));override_run+=1
+-   else:override_run=0
+-  else:override_run=0
+   if lm is None or min(lm[33,1],lm[263,1])<0:
+    if mouth_refiner is None:
+     from app.mouth_region import MouthRegion
+@@ -79,5 +74,5 @@ try:
+   rows[i]=lm;boxes[i]=(x1,y1,x2,y2);reverse_frames+=1;seed_index=i;seed_frame=current;seed_points=lm;distance+=1
+ finally:back.release()
+ if not any(b[2]>b[0] for b in boxes):raise ValueError('视频未定位到清晰人脸，无法对口型')
+-np.savez_compressed(spec['output'],landmarks=np.asarray(rows),boxes=np.asarray(boxes),fps=fps,width=w,height=h,flow_frames=flow_frames,outside_frames=outside_frames,reverse_frames=reverse_frames,fan_frames=fan_frames,flow_checked_frames=np.asarray(checked_frames,np.int32))
+-print(json.dumps({'frames':len(rows),'localized':sum(b[2]>b[0] for b in boxes),'fps':fps,'flow_frames':flow_frames,'flow_checked_frames':checked_frames[:60]}))
++np.savez_compressed(spec['output'],landmarks=np.asarray(rows),boxes=np.asarray(boxes),fps=fps,width=w,height=h,flow_frames=flow_frames,outside_frames=outside_frames,reverse_frames=reverse_frames,fan_frames=fan_frames)
++print(json.dumps({'frames':len(rows),'localized':sum(b[2]>b[0] for b in boxes),'fps':fps,'flow_frames':flow_frames}))
+diff --git a/scripts/speech_infer.py b/scripts/speech_infer.py
+index 0665322..ff90e21 100644
+--- a/scripts/speech_infer.py
++++ b/scripts/speech_infer.py
+@@ -27,7 +27,7 @@ def asr(spec):
+   if len(audio)/sr-last>3:
+    seg=model({'raw':audio,'sampling_rate':sr},return_timestamps=True,generate_kwargs=generate,batch_size=1)
+    tail=[c for c in seg.get('chunks') or [] if c.get('timestamp') and c['timestamp'][0] is not None and c['timestamp'][0]>=last-.2 and str(c.get('text','')).strip()]
+-   result['chunks']+=[{'text':str(c['text']).strip(),'timestamp':[round(max(last,float(c['timestamp'][0])),3),round(float(c['timestamp'][1] if c['timestamp'][1] is not None else len(audio)/sr),3)]} for c in tail]
++   result['chunks']=merge_tail(result['chunks'],[{'text':str(c['text']).strip(),'timestamp':[round(max(last,float(c['timestamp'][0])),3),round(float(c['timestamp'][1] if c['timestamp'][1] is not None else len(audio)/sr),3)]} for c in tail])
+    result['text']=''.join(c['text'] for c in result['chunks']);result['tail_from_segments']=len(tail)
+   Path(spec['output']).with_name(Path(spec['output']).stem+'-words.json').write_text(json.dumps(words,ensure_ascii=False,indent=1))
+  except Exception as e:
+@@ -35,6 +35,22 @@ def asr(spec):
+   result=model({'raw':audio,'sampling_rate':sr},return_timestamps=True,generate_kwargs=generate,batch_size=4)
+  Path(spec['output']).write_text(json.dumps(result,ensure_ascii=False,indent=2));return result
+ 
++def merge_tail(chunks,tail,probe=5):
++ """Append the segment-mode tail. Word mode sometimes crams the last stretch of speech into an
++ earlier sentence; when the tail's opening words already appear there, that copy is cut so the
++ speech is kept once, at the segment-mode timing."""
++ chunks=[dict(c) for c in chunks]
++ head=next((t['text'] for t in tail if len(t['text'])>=probe),None)
++ if head:
++  key=head[:probe]
++  for k in range(len(chunks)-1,max(-1,len(chunks)-4),-1):
++   at=chunks[k]['text'].find(key)
++   if at<0:continue
++   kept=chunks[k]['text'][:at].rstrip(',，、 ')
++   chunks=chunks[:k]+([dict(chunks[k],text=kept)] if kept else [])
++   break
++ return chunks+list(tail)
++
+ def sentences_from_words(words,duration,pause=.4,soft=6.,hard=9.,min_len=1.):
+  """Group word timestamps into sentences: break at pauses >= `pause` s, at sentence
+  punctuation once 2 s long, at smaller pauses once `soft` s long, and always by `hard` s.
+diff --git a/tests/test_lip_temporal.py b/tests/test_lip_temporal.py
+index 3c61ac1..ad8de56 100644
+--- a/tests/test_lip_temporal.py
++++ b/tests/test_lip_temporal.py
+@@ -33,15 +33,3 @@ def test_smooth_fast_motion_is_not_touched():
+     assert idx == [] and np.allclose(fixed, np.array(track))
+ 
+ 
+-
+-def test_detection_that_jumps_while_the_image_is_still_is_replaced_by_flow():
+-    import cv2
+-    from app.face_flow import verify
+-    rng = np.random.default_rng(0)
+-    img = cv2.GaussianBlur((rng.random((720, 720, 3)) * 255).astype(np.uint8), (5, 5), 0)
+-    prev = face(360, 300, size=120)
+-    bad = face(360, 390, size=120)                       # detector puts the face 90 px too low
+-    pts, overridden = verify(img, img.copy(), prev, bad)
+-    assert overridden and np.allclose(pts[:, :2], prev[:, :2], atol=1.5)
+-    same, overridden = verify(img, img.copy(), prev, face(361, 302, size=120))
+-    assert not overridden                                # small, normal change: detection kept
+diff --git a/tests/test_thai_timing.py b/tests/test_thai_timing.py
+index a5789ef..e96bd19 100644
+--- a/tests/test_thai_timing.py
++++ b/tests/test_thai_timing.py
+@@ -84,3 +84,11 @@ def test_a_long_word_chunk_never_stretches_a_sentence_past_the_hard_limit():
+     out = speech_infer.sentences_from_words(words(seq), 11)
+     assert max(c['timestamp'][1] - c['timestamp'][0] for c in out['chunks']) <= 9.0 + 1e-6 or len(out['chunks']) >= 2
+     assert out['chunks'][0]['timestamp'][1] <= 4.0
++
++
++def test_tail_speech_crammed_into_an_earlier_sentence_is_kept_once():
++    chunks = [{'text': '好看,你看一下,型配一个黑色的也行我的那个蕾丝绣的黑色T在前面啊黑色T来你等一下', 'timestamp': [39.04, 46.26]}]
++    tail = [{'text': '我的那个蕾丝绣的黑色T在前面', 'timestamp': [48.0, 50.0]}, {'text': '你等一下', 'timestamp': [50.0, 52.0]}]
++    out = speech_infer.merge_tail(chunks, tail)
++    assert out[0]['text'] == '好看,你看一下,型配一个黑色的也行' and len(out) == 3
++    assert speech_infer.merge_tail([{'text': '前面的话', 'timestamp': [0, 2]}], tail)[0]['text'] == '前面的话'
+-- 
+2.43.0
+
