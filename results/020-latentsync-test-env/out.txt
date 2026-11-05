@@ -1,0 +1,31 @@
+.latentsync-env/bin/python                              prod=ok test=ok
+engines/LatentSync/configs/unet/stage2_512.yaml         prod=ok test=MISSING
+models/latentsync-1.6/latentsync_unet.pt                prod=ok test=ok
+models/latentsync-1.6/whisper/tiny.pt                   prod=ok test=ok
+models/latentsync-1.6/install-proof.json                prod=ok test=ok
+lrwxrwxrwx  1 root root       37 Nov  5 14:50 .latentsync-env -> /root/autodl-tmp/spcx/.latentsync-env
+drwxr-xr-x  4 root root       54 Nov  5 14:50 engines
+lrwxrwxrwx  1 root root       28 Nov  5 14:47 models -> /root/autodl-tmp/spcx/models
+total 4
+drwxr-xr-x  4 root root   54 Nov  5 14:50 .
+drwxr-xr-x 22 root root 4096 Nov  5 14:50 ..
+drwxr-xr-x  2 root root   10 Nov  5 14:50 LatentSync
+drwxr-xr-x  2 root root   29 Nov  5 14:47 facefusion
+{
+  "ready": true,
+  "inference_verified": true,
+  "source_revision": "a229c3948406bc2cf6eaf4873e662e70c6a04746",
+  "weights_revision": "c42c7e6c8e9c213626389fa7d9a3c444b8536353",
+  "verified_samples": [
+    {
+      "case": "latent1",
+      "frames": 195,
+      "localized_frames": 195,
+      "unlocalized_frames": 0,
+      "mouth_outside_frames": 0,
+      "outside_mouth_preencode_changed_pixels": 0,
+      "whole_frame_generation": false,
+      "clothing_policy": "original pixels outside bounded mouth region before encoding",
+      "mouth_envelope": "speech opening aware v27",
+      "composite":
+test ready False
