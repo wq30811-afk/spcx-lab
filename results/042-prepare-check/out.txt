@@ -1,0 +1,10 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+{"frames": 1502, "localized": 1502, "fps": 25.0, "flow_frames": 0}
+
+real	1m2.279s
+user	1m46.688s
+sys	0m45.938s
+nose 462-487 [568.0, 568.0, 572.0, 578.0, 588.0, 599.0, 611.0, 626.0, 641.0, 643.0, 653.0, 658.0, 659.0, 659.0, 656.0, 652.0, 647.0, 647.0, 634.0, 620.0, 606.0, 589.0, 576.0, 571.0, 571.0, 570.0]
+nan frames 0 flow 0 fan 0
+frames differing >25px from r6 geometry [207, 208, 209, 363, 364, 365, 366, 367, 383, 384, 385, 386, 387, 467, 468, 469, 470, 471, 472, 473, 474, 475, 476, 482, 483, 499, 595, 596, 597, 598, 599, 600, 714, 715, 716, 717, 718, 719, 720, 721, 1085, 1086, 1087, 1088, 1089, 1294, 1295, 1296, 1297, 1298, 1299, 1308, 1309]
