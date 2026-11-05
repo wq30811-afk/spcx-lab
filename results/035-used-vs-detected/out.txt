@@ -1,0 +1,74 @@
+aligned-faces.mp4
+asr-raw.json
+asr-words.json
+asr.json
+correction-audit.json
+face-affines.npz
+face-chunks
+face-options.json
+facefusion.log
+geometry.npz
+intermediate-0df795c7ac2f4cc988332170523ec7fa.mp4
+language-source.mp4
+latent-temp
+length-fit.json
+lips_align_faces.py-74513e.json
+lips_composite_roi.py-74ec39.json
+lips_latentsync.py-c7ca39.json
+lips_prepare.py-41ae79.json
+mouth-patches.mp4
+optional-result.json
+optional-stage.json
+shorten-0.json
+shorten-1.json
+source-16k.wav
+speech-0-fit.wav
+speech-0.wav
+speech-1-fit.wav
+speech-1.wav
+speech-10-fit.wav
+speech-10.wav
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+['/root/autodl-tmp/spcx-test/work/jobs/d49f839c9e324b0cad0836c581af70de/language-source.mp4', '/root/autodl-tmp/spcx-test/work/jobs/d49f839c9e324b0cad0836c581af70de/intermediate-0df795c7ac2f4cc988332170523ec7fa.mp4']
+205 max px err used vs detected 0
+207 max px err used vs detected 0
+209 max px err used vs detected 0
+211 max px err used vs detected 22
+213 max px err used vs detected None
+215 max px err used vs detected None
+217 max px err used vs detected 87
+219 max px err used vs detected None
+221 max px err used vs detected None
+223 max px err used vs detected None
+225 max px err used vs detected None
+227 max px err used vs detected None
+229 max px err used vs detected None
+231 max px err used vs detected None
+233 max px err used vs detected None
+235 max px err used vs detected None
+237 max px err used vs detected None
+239 max px err used vs detected None
+241 max px err used vs detected None
+243 max px err used vs detected None
+245 max px err used vs detected None
+466 max px err used vs detected 0
+467 max px err used vs detected 0
+468 max px err used vs detected 0
+469 max px err used vs detected 0
+470 max px err used vs detected 0
+471 max px err used vs detected 0
+472 max px err used vs detected 18
+473 max px err used vs detected 39
+474 max px err used vs detected 20
+475 max px err used vs detected 22
+476 max px err used vs detected 0
+477 max px err used vs detected 40
+478 max px err used vs detected 37
+479 max px err used vs detected 36
+480 max px err used vs detected 40
+481 max px err used vs detected 0
+482 max px err used vs detected 0
+483 max px err used vs detected 0
+484 max px err used vs detected 0
+485 max px err used vs detected 0
