@@ -1,0 +1,247 @@
+From bb5c9208a1efeb2d02d31de56fc4d67d600aeff0 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 5 Nov 2026 19:04:35 +0900
+Subject: [PATCH] fix(lips): cross-check landmark detections against optical
+ flow; only repair out-and-back spikes; cap spike-guard reverts at 2 frames;
+ ASR projected-length cap
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015XEHdEnhr7p5ae4FL4TjbE
+---
+ app/face_flow.py              | 16 +++++++
+ app/lip_temporal.py           | 79 +++++++++++++++++++----------------
+ scripts/lips_composite_roi.py |  7 ++--
+ scripts/lips_prepare.py       | 13 ++++--
+ scripts/speech_infer.py       |  2 +-
+ tests/test_lip_temporal.py    | 14 +++++++
+ tests/test_thai_timing.py     |  7 ++++
+ 7 files changed, 94 insertions(+), 44 deletions(-)
+
+diff --git a/app/face_flow.py b/app/face_flow.py
+index a681f26..f7bcc71 100644
+--- a/app/face_flow.py
++++ b/app/face_flow.py
+@@ -36,3 +36,19 @@ def follow(previous,current,points,allow_partial=False):
+   # the chin is still visible. No pixels are synthesized for that interval.
+   if not (allow_partial and -h*.2<center[1]<0 and 0<result[152,1]<h and 0<result[152,0]<w):return None
+  return result
++
++BROWS=([70,63,105,66,107],[336,296,334,293,300])
++def _anchors(p):return np.array([p[BROWS[0],:2].mean(0),p[BROWS[1],:2].mean(0),p[1,:2]])
++def verify(previous,current,previous_points,detected,tolerance=.15):
++ """Cross-check a fresh detection against the pixels. A detector can misplace the whole face
++ for several frames (e.g. after a hand sweeps past) while the image barely changes. When the
++ detection jumps from the previous points by more than `tolerance` of the face size and
++ optical flow of the actual face texture disagrees by as much, the flow-tracked points are
++ returned instead. Returns (points, overridden)."""
++ if detected is None or previous_points is None or not np.isfinite(previous_points[[1]+BROWS[0]+BROWS[1],:2]).all():return detected,False
++ a,d=_anchors(previous_points),_anchors(detected);size=float(np.linalg.norm(a[0]-a[1])) or 1.
++ if float(np.linalg.norm(d-a,axis=1).max())/size<=tolerance:return detected,False
++ tracked=follow(previous,current,previous_points)
++ if tracked is None:return detected,False
++ if float(np.linalg.norm(d-_anchors(tracked),axis=1).max())/size<=tolerance:return detected,False
++ return tracked,True
+diff --git a/app/lip_temporal.py b/app/lip_temporal.py
+index 0af9722..4187d57 100644
+--- a/app/lip_temporal.py
++++ b/app/lip_temporal.py
+@@ -1,10 +1,14 @@
+ """Temporal sanity for lip-sync geometry.
+ 
+-Fast hand motion and motion blur occasionally give one or two frames of badly placed
+-landmarks. Those frames drive both the face alignment (what LatentSync sees) and the mouth
+-envelope (where the generated mouth is pasted), so the result is a twisted, oversized mouth
+-for a flash. A real face cannot jump in position, size or angle for a single frame, so such
+-frames are detected against their neighbours and re-estimated from the surrounding good frames.
++The face tracker occasionally returns one or two frames of badly placed landmarks (for example
++just after a hand sweeps past the face). Those frames drive both the face alignment (what
++LatentSync sees) and the mouth envelope (where the generated mouth is pasted), so the result is a
++twisted mouth for a flash.
++
++Only out-and-back spikes are repaired: a run of 1-2 frames that leaves the straight line between
++its neighbours by more than the neighbours themselves move. Fast real motion (leaning in,
++turning, bending down) moves the neighbours too and is never touched, because interpolating over
++real motion misplaces the face crop and causes exactly the twisted mouth it is meant to prevent.
+ """
+ import numpy as np
+ 
+@@ -17,36 +21,39 @@ def anchors(p):
+     return np.array([p[BROW_L, :2].mean(0), p[BROW_R, :2].mean(0), p[NOSE, :2]])
+ 
+ 
+-def outliers(landmarks, window=3, tolerance=.15):
+-    """Frames whose alignment anchors deviate from the median of their neighbours by more than
+-    `tolerance` of the face size (brow-to-brow distance), or whose size jumps by > 20%."""
+-    q = np.stack([anchors(p) for p in landmarks]); n = len(q); bad = []
++def outliers(landmarks, tolerance=.15, max_run=2):
++    """Frames in a run of at most `max_run` that jump away from, and back to, the line between
++    the frames on either side: deviation > `tolerance` of the face size (brow-to-brow distance)
++    and larger than the motion between those two neighbours, or a size flash outside 0.8-1.25."""
++    q = np.stack([anchors(p) for p in landmarks]); n = len(q); bad = set()
+     size = np.linalg.norm(q[:, 0] - q[:, 1], axis=1)
+-    for i in range(n):
+-        # Symmetric neighbourhoods only: their median is unbiased for steady motion, and
+-        # robust to a second glitch frame among the neighbours.
+-        if i < window or i >= n - window: continue
+-        nb = [j for j in range(i - window, i + window + 1) if j != i]
+-        ref = np.median(q[nb], axis=0); ref_size = float(np.median(size[nb])) or 1.0
+-        dev = float(np.linalg.norm(q[i] - ref, axis=1).max()) / ref_size
+-        if dev > tolerance or not .8 <= size[i] / ref_size <= 1.25: bad.append(i)
+-    return bad
+-
+-
+-def repair(landmarks, max_gap=6, **kw):
+-    """Return (landmarks, repaired indices). Outlier frames are linearly interpolated between
+-    the nearest good frames on both sides (at most `max_gap` frames away); if only one side
+-    exists the nearest good frame is copied. Frames without a close good neighbour are kept."""
+-    lm = np.array(landmarks, np.float32, copy=True); bad = set(outliers(lm, **kw)); fixed = []
+-    good = [i for i in range(len(lm)) if i not in bad]
+-    for i in sorted(bad):
+-        left = max((g for g in good if g < i), default=None); right = min((g for g in good if g > i), default=None)
+-        if left is not None and i - left > max_gap: left = None
+-        if right is not None and right - i > max_gap: right = None
+-        if left is None and right is None: continue
+-        if left is None: lm[i] = lm[right]
+-        elif right is None: lm[i] = lm[left]
+-        else:
+-            t = (i - left) / (right - left); lm[i] = lm[left] * (1 - t) + lm[right] * t
+-        fixed.append(i)
++    for run in range(1, max_run + 1):
++        for i in range(1, n - run):
++            a, b = i - 1, i + run
++            if a in bad: continue
++            ref = float((size[a] + size[b]) / 2) or 1.0
++            moved = float(np.linalg.norm(q[b] - q[a], axis=1).max()) / ref
++            if abs(size[a] / max(size[b], 1e-6) - 1) > .2: continue      # neighbours disagree: real change
++            run_bad = []
++            for j in range(i, b):
++                t = (j - a) / (b - a); expect = q[a] * (1 - t) + q[b] * t
++                dev = float(np.linalg.norm(q[j] - expect, axis=1).max()) / ref
++                flash = not .8 <= size[j] / ref <= 1.25
++                run_bad.append((dev > tolerance and dev > moved) or flash)
++            if all(run_bad): bad.update(range(i, b))
++    return sorted(bad)
++
++
++def repair(landmarks, **kw):
++    """Return (landmarks, repaired indices). Spike frames are linearly interpolated between the
++    good frames directly around them."""
++    lm = np.array(landmarks, np.float32, copy=True); bad = outliers(lm, **kw); fixed = []
++    bad_set = set(bad)
++    for i in bad:
++        left = i - 1
++        while left in bad_set: left -= 1
++        right = i + 1
++        while right in bad_set: right += 1
++        if left < 0 or right >= len(lm): continue
++        t = (i - left) / (right - left); lm[i] = lm[left] * (1 - t) + lm[right] * t; fixed.append(i)
+     return lm, fixed
+diff --git a/scripts/lips_composite_roi.py b/scripts/lips_composite_roi.py
+index 2420e14..fbfd232 100644
+--- a/scripts/lips_composite_roi.py
++++ b/scripts/lips_composite_roi.py
+@@ -22,10 +22,11 @@ try:
+   changed=int(np.count_nonzero(np.any(out[allowed]!=frame[allowed],axis=1)))
+   # Last guard: a generated mouth suddenly covering far more than in the recent frames is a
+   # misplaced patch, not speech. Keep the (face-swapped) source mouth for that frame instead.
+-  base=float(np.median(recent)) if len(recent)>=5 else 0.
+-  if base>50 and changed>base*2.5:
++  # Only a flash (at most 2 frames in a row) is reverted: a lasting change is real (mouth opens,
++  # face comes closer), so the history always follows the measured size.
++  base=float(np.median(recent)) if len(recent)>=5 else 0.;streak=len(reverted)>=2 and reverted[-2:]==[count-2,count-1];recent.append(changed)
++  if base>50 and changed>base*2.5 and not streak:
+    out=frame.copy();reverted.append(count);changed=0
+-  else:recent.append(changed)
+   changed_frames+=int(changed>0);changed_pixels+=changed
+   part=audio[round(count*audio_rate/fps):round((count+1)*audio_rate/fps)];voiced=bool(len(part) and float(np.sqrt(np.mean(part**2)))>.006);voiced_frames+=int(voiced)
+   if voiced and not changed:unchanged_voiced.append(count)
+diff --git a/scripts/lips_prepare.py b/scripts/lips_prepare.py
+index 4e04451..16a345e 100644
+--- a/scripts/lips_prepare.py
++++ b/scripts/lips_prepare.py
+@@ -3,10 +3,10 @@ from pathlib import Path
+ import os,sys,json,cv2,numpy as np
+ ROOT=Path(os.environ.get('SPCX_ROOT',Path(__file__).resolve().parents[1]));sys.path.insert(0,str(ROOT))
+ from app.vision_runtime import base_options
+-from app.face_flow import follow
++from app.face_flow import follow,verify
+ import mediapipe as mp
+ from mediapipe.tasks.python import vision
+-spec=json.loads(Path(sys.argv[1]).read_text());cap=cv2.VideoCapture(spec['video']);fps=cap.get(cv2.CAP_PROP_FPS);w=int(cap.get(3));h=int(cap.get(4));rows=[];boxes=[];refiner=None;mouth_refiner=None;previous_frame=None;previous_points=None;flow_frames=0;outside_frames=0;fan_refiner=None;fan_frames=0;last_valid_frame=None;last_valid_points=None;last_valid_index=-100
++spec=json.loads(Path(sys.argv[1]).read_text());cap=cv2.VideoCapture(spec['video']);fps=cap.get(cv2.CAP_PROP_FPS);w=int(cap.get(3));h=int(cap.get(4));rows=[];boxes=[];refiner=None;mouth_refiner=None;previous_frame=None;previous_points=None;flow_frames=0;outside_frames=0;fan_refiner=None;fan_frames=0;last_valid_frame=None;last_valid_points=None;last_valid_index=-100;checked_frames=[];override_run=0
+ mesh=vision.FaceLandmarker.create_from_options(vision.FaceLandmarkerOptions(base_options=base_options('face_landmarker.task',False),running_mode=vision.RunningMode.VIDEO,num_faces=2,min_face_detection_confidence=.35,min_face_presence_confidence=.35))
+ try:
+  while True:
+@@ -19,6 +19,11 @@ try:
+    a,b=faces[:2];lo=np.maximum(a[:,:2].min(0),b[:,:2].min(0));hi=np.minimum(a[:,:2].max(0),b[:,:2].max(0));intersection=float(np.maximum(0,hi-lo).prod());area_a=float(np.ptp(a[:,0])*np.ptp(a[:,1]));area_b=float(np.ptp(b[:,0])*np.ptp(b[:,1]))
+    if area_b>area_a*.4 and intersection/max(1,area_a+area_b-intersection)<.25:raise ValueError("检测到多个大小接近的人脸，请先裁剪或指定目标人物")
+   lm=faces[0] if faces else None
++  if lm is not None and override_run<25:
++   lm,overridden=verify(previous_frame,frame,previous_points,lm)
++   if overridden:checked_frames.append(len(rows));override_run+=1
++   else:override_run=0
++  else:override_run=0
+   if lm is None or min(lm[33,1],lm[263,1])<0:
+    if mouth_refiner is None:
+     from app.mouth_region import MouthRegion
+@@ -74,5 +79,5 @@ try:
+   rows[i]=lm;boxes[i]=(x1,y1,x2,y2);reverse_frames+=1;seed_index=i;seed_frame=current;seed_points=lm;distance+=1
+ finally:back.release()
+ if not any(b[2]>b[0] for b in boxes):raise ValueError('视频未定位到清晰人脸，无法对口型')
+-np.savez_compressed(spec['output'],landmarks=np.asarray(rows),boxes=np.asarray(boxes),fps=fps,width=w,height=h,flow_frames=flow_frames,outside_frames=outside_frames,reverse_frames=reverse_frames,fan_frames=fan_frames)
+-print(json.dumps({'frames':len(rows),'localized':sum(b[2]>b[0] for b in boxes),'fps':fps,'flow_frames':flow_frames}))
++np.savez_compressed(spec['output'],landmarks=np.asarray(rows),boxes=np.asarray(boxes),fps=fps,width=w,height=h,flow_frames=flow_frames,outside_frames=outside_frames,reverse_frames=reverse_frames,fan_frames=fan_frames,flow_checked_frames=np.asarray(checked_frames,np.int32))
++print(json.dumps({'frames':len(rows),'localized':sum(b[2]>b[0] for b in boxes),'fps':fps,'flow_frames':flow_frames,'flow_checked_frames':checked_frames[:60]}))
+diff --git a/scripts/speech_infer.py b/scripts/speech_infer.py
+index 87f5cd6..0665322 100644
+--- a/scripts/speech_infer.py
++++ b/scripts/speech_infer.py
+@@ -48,7 +48,7 @@ def sentences_from_words(words,duration,pause=.4,soft=6.,hard=9.,min_len=1.):
+  groups=[[items[0]]]
+  for a,b in zip(items,items[1:]):
+   g=groups[-1];length=a[1]-g[0][0];gap=b[0]-a[1]
+-  if gap>=pause or length>=hard or (length>=2 and a[2].strip()[-1:] in '。！？!?.') or (length>=soft and gap>=.12):groups.append([b])
++  if gap>=pause or length>=hard or b[1]-g[0][0]>hard or (length>=2 and a[2].strip()[-1:] in '。！？!?.') or (length>=soft and gap>=.12):groups.append([b])
+   else:g.append(b)
+  merged=[]
+  for g in groups:
+diff --git a/tests/test_lip_temporal.py b/tests/test_lip_temporal.py
+index a685031..3c61ac1 100644
+--- a/tests/test_lip_temporal.py
++++ b/tests/test_lip_temporal.py
+@@ -31,3 +31,17 @@ def test_smooth_fast_motion_is_not_touched():
+     assert outliers(track) == []
+     fixed, idx = repair(track)
+     assert idx == [] and np.allclose(fixed, np.array(track))
++
++
++
++def test_detection_that_jumps_while_the_image_is_still_is_replaced_by_flow():
++    import cv2
++    from app.face_flow import verify
++    rng = np.random.default_rng(0)
++    img = cv2.GaussianBlur((rng.random((720, 720, 3)) * 255).astype(np.uint8), (5, 5), 0)
++    prev = face(360, 300, size=120)
++    bad = face(360, 390, size=120)                       # detector puts the face 90 px too low
++    pts, overridden = verify(img, img.copy(), prev, bad)
++    assert overridden and np.allclose(pts[:, :2], prev[:, :2], atol=1.5)
++    same, overridden = verify(img, img.copy(), prev, face(361, 302, size=120))
++    assert not overridden                                # small, normal change: detection kept
+diff --git a/tests/test_thai_timing.py b/tests/test_thai_timing.py
+index 0eac6ff..a5789ef 100644
+--- a/tests/test_thai_timing.py
++++ b/tests/test_thai_timing.py
+@@ -77,3 +77,10 @@ def test_merging_tiny_pieces_never_exceeds_the_hard_limit():
+         seq.append(('字字', t, t + .8)); t += 1.25
+     out = speech_infer.sentences_from_words(words(seq), t)
+     assert max(c['timestamp'][1] - c['timestamp'][0] for c in out['chunks']) <= 9.0
++
++
++def test_a_long_word_chunk_never_stretches_a_sentence_past_the_hard_limit():
++    seq = [('前面一句话', 0.0, 4.0), ('然后一个很长的词块', 4.05, 10.1), ('后面', 10.15, 10.6)]
++    out = speech_infer.sentences_from_words(words(seq), 11)
++    assert max(c['timestamp'][1] - c['timestamp'][0] for c in out['chunks']) <= 9.0 + 1e-6 or len(out['chunks']) >= 2
++    assert out['chunks'][0]['timestamp'][1] <= 4.0
+-- 
+2.43.0
+
