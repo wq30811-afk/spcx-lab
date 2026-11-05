@@ -18,8 +18,9 @@ def link_runtime():
     (TEST / 'engines').mkdir(exist_ok=True)
     for eng in (PROD / 'engines').iterdir():
         dst = TEST / 'engines' / eng.name
-        if eng.name == 'facefusion' or dst.exists(): continue
-        dst.symlink_to(eng)
+        if eng.name == 'facefusion' or dst.is_symlink(): continue
+        if dst.is_dir() and not any(dst.iterdir()): dst.rmdir()      # empty submodule checkout
+        if not dst.exists(): dst.symlink_to(eng)
     for name in ('models', 'bin'):
         if not (TEST / name).exists(): (TEST / name).symlink_to(PROD / name)
     # Test environment keeps its own private folder; only the API settings are copied (on this server).
@@ -34,7 +35,7 @@ def main():
     ap.add_argument('video'); ap.add_argument('out')
     ap.add_argument('--face'); ap.add_argument('--voice', default='standard')
     ap.add_argument('--lip', default='musetalk'); ap.add_argument('--quality', default='quick')
-    ap.add_argument('--requirement', default='')
+    ap.add_argument('--requirement', default=''); ap.add_argument('--rate', type=float); ap.add_argument('--tts', default='thai-f5')
     a = ap.parse_args(); out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     link_runtime()
     os.environ.update(SPCX_ROOT=str(TEST), SPCX_CLOUD_MODE='1'); sys.path.insert(0, str(TEST))
@@ -50,7 +51,8 @@ def main():
         fpath = inputs / ('lab-' + Path(a.face).name); shutil.copyfile(a.face, fpath)
         face_id = store.add_asset(fpath, Path(a.face).name, 'image', {})['id']
     d = LanguageJob(video_id=v['id'], face=bool(face_id), face_id=face_id, voice_mode=a.voice, lip_model=a.lip,
-                    quality=a.quality, requirement=a.requirement, request_id=uuid.uuid4().hex)
+                    quality=a.quality, requirement=a.requirement, tts_model=a.tts, request_id=uuid.uuid4().hex,
+                    **({'exchange_rate': a.rate} if a.rate else {}))
     cfg = d.model_dump(); cfg.update(execution_mode='local', _language_request=d.model_dump(), templates=prompts.read())
     jid = d.request_id; now = store.now()
     with store.db() as c:
@@ -63,10 +65,10 @@ def main():
                               cwd=TEST, env=env, stdout=fh, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL).returncode
     j = store.job(jid); work = TEST / 'work/jobs' / jid
     summary = {'exit': code, 'status': j['status'], 'message': j['message'], 'seconds': round(time.time() - t0, 1),
-               'options': {k: cfg[k] for k in ('voice_mode', 'tts_model', 'lip_model', 'quality', 'face', 'requirement')}}
+               'options': {k: cfg[k] for k in ('voice_mode', 'tts_model', 'lip_model', 'quality', 'face', 'requirement', 'exchange_rate') if k in cfg}}
     res = j.get('result') or {}
     summary['quality'] = {k: res.get(k) for k in ('lip_quality', 'voice_quality', 'quality') if res.get(k)}
-    for name in ('asr-raw.json', 'asr.json', 'translated.json', 'voice-quality.json', 'thai-localized.mp4.quality.json'):
+    for name in ('asr-raw.json', 'asr-raw-words.json', 'asr.json', 'translated.json', 'length-fit.json', 'voice-quality.json', 'thai-localized.mp4.quality.json', 'thai-aligned.wav.alignment.json'):
         if (work / name).is_file(): shutil.copyfile(work / name, out / name)
     final = TEST / 'outputs/media' / (jid + '.mp4')
     if final.is_file():

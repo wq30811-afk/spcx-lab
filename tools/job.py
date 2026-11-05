@@ -50,8 +50,8 @@ def audit(step, out):
 def language(step, out):
     """Full language_video pipeline in spcx-test (own database)."""
     args = [PY, LAB / 'tools/language_run.py', step['video'], out / step.get('name', 'language')]
-    for k, flag in (('face', '--face'), ('voice', '--voice'), ('lip', '--lip'), ('quality', '--quality'), ('requirement', '--requirement')):
-        if step.get(k): args += [flag, step[k]]
+    for k, flag in (('face', '--face'), ('voice', '--voice'), ('lip', '--lip'), ('quality', '--quality'), ('requirement', '--requirement'), ('rate', '--rate'), ('tts', '--tts')):
+        if step.get(k): args += [flag, str(step[k])]
     return run(args)
 
 
