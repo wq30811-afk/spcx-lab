@@ -1,0 +1,69 @@
+From 77135605e4bb0708bb41bfaa76a3238613c87b79 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 5 Nov 2026 17:28:48 +0900
+Subject: [PATCH] feat(language): swap the face before lip sync, so the synced
+ mouth is the last edit
+
+FaceFusion re-draws the whole face from the source expression and damps a freshly synced
+mouth; the lip model now works on the swapped face instead. Masks and backgrounds still
+run afterwards, without a second face swap.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015XEHdEnhr7p5ae4FL4TjbE
+---
+ scripts/language_video_worker.py | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/scripts/language_video_worker.py b/scripts/language_video_worker.py
+index 88e0428..6215d8e 100644
+--- a/scripts/language_video_worker.py
++++ b/scripts/language_video_worker.py
+@@ -24,11 +24,13 @@ def invoke(script,spec,env='core',timeout=1800):
+    except (ValueError,AttributeError):detail=None
+    if detail:raise ValueError(detail)
+   raise ValueError('当前阶段未完成，请查看任务日志或更换模型')
+-def video_stage(asset,base,span):
++def video_stage(asset,base,span,face_only=False,face=None):
+  from app.main import VideoJob
+  from app.face_presets import normalize
+  cfg=VideoJob(video_id=asset['id'],face=c['face'],face_id=c.get('face_id'),face_preset=c['face_preset'],face_enhance=c.get('face_enhance',False),face_enhance_blend=c.get('face_enhance_blend',65),face_pixel_boost=c.get('face_pixel_boost'),face_mask_blur=c.get('face_mask_blur',.3),background=c['background'] and c['background_mode']=='manual',background_id=c.get('background_id'),mask=c['mask'],effect_template=c['effect_template'],mask_color=c['mask_color'],mask_coverage=c['mask_coverage'],mask_style=c.get('mask_style','black'),mask_scale=c.get('mask_scale',1),mask_opacity=1,mask_offset=c.get('mask_offset',0),mask_guard=c.get('mask_guard','protect'),effect_intensity=c.get('effect_intensity',1),product_type=c['product_type'],face_provider='cuda',matting_provider='cuda',resolution=1080).model_dump()
+- if c['face']:cfg=normalize(cfg)
++ if face_only:cfg.update(background=False,mask=False)
++ if face is not None:cfg['face']=face
++ if cfg['face']:cfg=normalize(cfg)
+  from app.effects import TEMPLATES
+  if c['mask'] and TEMPLATES[c['effect_template']].get('customizable'):cfg.update(mask_scale=max(.98,cfg['mask_scale']),mask_offset=max(-.035,min(.035,cfg['mask_offset'])))
+  out=work/'optional-result.json'
+@@ -142,10 +144,18 @@ try:
+  aligned=work/'thai-aligned.wav'
+  for row,seg in zip(rows,segments):row['audio']=seg['output']
+  invoke('speech_align.py',{'segments':rows,'duration':duration,'output':str(aligned),'max_speed':1.8})
++ face_done=False
+  resultfile=work/'thai-localized.mp4';quality={};update(43,'准备目标语言声音与画面')
+  if c['lip_sync'] and not c['mask']:
+   if lip_model=='latentsync-1.6' and abs(meta['fps']-25)>.01:
+    normalized=work/'language-source-25fps.mp4';prepare(video,normalized,0,0,1080,fps=25);video=normalized;meta=probe(video)
++  if c['face']:
++   # Face swap BEFORE lip sync: the swap model re-draws the whole face from the source
++   # expression and damps a freshly synced mouth; syncing last keeps the Thai mouth shapes
++   # and lets the lip model see the final face.
++   update(44,'先换脸，再按换脸后的脸对口型')
++   swapped=video_stage(store.public_asset(store.add_asset(video,'language-source-for-face.mp4','video',probe(video))),44,1,face_only=True)
++   video=Path(store.asset(swapped['asset']['id'])['path']);meta=probe(video);face_done=True
+   geometry=work/'geometry.npz';patches=work/'mouth-patches.mp4';spec={'video':str(video),'audio':str(aligned),'geometry':str(geometry),'patches':str(patches),'output':str(geometry)}
+   update(45,'定位嘴部、转头和前景遮挡');invoke('lips_prepare.py',spec)
+   import numpy as np
+@@ -174,8 +184,8 @@ try:
+    detail=json.loads(out.read_text()).get('stage_error') if out.is_file() else None
+    raise ValueError(detail or '智能背景阶段未完成')
+   background_result=json.loads(out.read_text());background_context={k:background_result[k] for k in ('smart_background','assets') if k in background_result};current=archive(background_result['asset'])
+- if c['face'] or c['mask'] or c['background'] and c['background_mode']=='manual':
+-  optional=video_stage(current,93,5);current=optional['asset'];quality['optional_video']={k:v for k,v in optional.items() if k not in ('asset','meta')}
++ if (c['face'] and not face_done) or c['mask'] or c['background'] and c['background_mode']=='manual':
++  optional=video_stage(current,93,5,face=False if face_done else None);current=optional['asset'];quality['optional_video']={k:v for k,v in optional.items() if k not in ('asset','meta')}
+  update(99,'整理泰语成片、台词与质量记录')
+  final=ROOT/'outputs/media'/(id+'.mp4');shutil.copyfile(store.asset(current['id'])['path'],final);asset=store.public_asset(store.add_asset(final,source['name'].rsplit('.',1)[0]+'-'+target_name+'-spcx.mp4','video',probe(final)))
+  for row in rows:row.pop('audio',None)
+-- 
+2.43.0
+
